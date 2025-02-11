@@ -23,7 +23,6 @@ const DefaultLayout = (props) => {
           <div className="body flex-grow-1">
             <AppContent />
           </div>
-          {/* <AppFooter /> */}
         </div>
       </ErrorBoundary>
     </div>

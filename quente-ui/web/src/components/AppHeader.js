@@ -14,16 +14,7 @@ import {
   CHeaderToggler,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import {
-  cilChartLine,
-  cilDollar,
-  cilHistory,
-  cilHome,
-  cilInbox,
-  cilMenu,
-  cilSitemap,
-  cilUser,
-} from '@coreui/icons'
+import { cilChartLine, cilDollar, cilHistory, cilInbox, cilMenu } from '@coreui/icons'
 
 import AppHeaderDropdown from '@quente/common/components/AppHeaderDropdown'
 import { setShowToast, setSidebarShow } from 'src/app.slice'
@@ -42,7 +33,6 @@ const AppHeader = () => {
           <CIcon icon={cilMenu} size="lg" />
         </CHeaderToggler>
         <CHeaderBrand to="/" className="text-uppercase">
-          {/* <CIcon icon={logo} height={48} alt="Logo" /> */}
           {organization?.name}
         </CHeaderBrand>
         <div className="d-none d-md-block">
@@ -65,10 +55,6 @@ const AppHeader = () => {
           <AppHeaderDropdown />
         </CHeaderNav>
       </CContainer>
-      {/* <CHeaderDivider />
-          <CContainer fluid>
-        <AppBreadcrumb />
-      </CContainer> */}
       <CToaster placement="top-end">
         <CToast
           visible={showToast}

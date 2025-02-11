@@ -54,11 +54,7 @@ const AppHeaderDropdown = () => {
             {REACT_APP_RENDER_GIT_COMMIT.substring(0, 6)}
           </CBadge>
         </CDropdownItem>
-        <CDropdownItem onClick={handleLogout}>
-          <CIcon icon={cilAccountLogout} className="me-2" />
-          Cerrar sesión
-        </CDropdownItem>
-      </CDropdownMenu>
+      </CDropdownMenu> 
     </CDropdown>
   )
 }
