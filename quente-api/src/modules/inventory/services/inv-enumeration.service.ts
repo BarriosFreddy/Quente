@@ -26,8 +26,8 @@ export class InvEnumerationService extends BaseService<InvEnumeration> {
     invEnumeration: InvEnumeration,
   ): Promise<InvEnumeration | null> {
     try {
-      await this.getModel().update(id, invEnumeration);
-      return this.getModel().findOne(id);
+      await this.getModel().updateOne({ _id: id }, invEnumeration);
+      return this.getModel().findOne({ _id: id });
     } catch (error) {
       console.log(error);
       return Promise.reject(null);
@@ -36,7 +36,7 @@ export class InvEnumerationService extends BaseService<InvEnumeration> {
 
   findAll(query: { page: string | number }): Promise<InvEnumeration[]> {
     try {
-      return this.getModel().find(query);
+      return this.getModel().find(query).exec();
     } catch (error) {
       console.log(error);
       return Promise.reject(null);
@@ -45,7 +45,7 @@ export class InvEnumerationService extends BaseService<InvEnumeration> {
 
   findByCode(code: string): Promise<InvEnumeration | null> {
     try {
-      return this.getModel().findOne({ code });
+      return this.getModel().findOne({ code }).exec();
     } catch (error) {
       console.log(error);
       return Promise.reject(null);
