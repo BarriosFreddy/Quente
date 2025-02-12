@@ -3,7 +3,7 @@ import { MongoDBService } from '../db/mongodb.service';
 import { Schema } from 'mongoose';
 
 export abstract class BaseService<T> {
-  protected tenantId: string = '';
+  protected tenantId = '';
 
   abstract findOne(id: string): Promise<T | null>;
   abstract findAll(filter: any): Promise<T[]>;

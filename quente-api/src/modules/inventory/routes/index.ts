@@ -9,5 +9,5 @@ export {
   itemCategoryRouter,
   kardexTransactionRouter,
   purchaseOrderRouter,
-  invEnumerationRouter
+  invEnumerationRouter,
 };

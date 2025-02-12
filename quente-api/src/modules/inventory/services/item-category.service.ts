@@ -27,7 +27,7 @@ export class ItemCategoryService extends BaseService<ItemCategory> {
     code?: string;
   }): Promise<ItemCategory[]> {
     let filters = {};
-    let conditions = [];
+    const conditions = [];
     name && conditions.push({ name: new RegExp(`${name}`, 'i') });
     code && conditions.push({ code: new RegExp(`${code}`, 'i') });
 

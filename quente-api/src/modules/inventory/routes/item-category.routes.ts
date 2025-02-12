@@ -12,7 +12,10 @@ import { generateAuthKeyPair } from '../../../helpers/util';
 import { ModuleCode } from '../../core/entities/enums/modules-codes';
 import { Privilege } from '../../core/entities/enums/privileges';
 import { idSchema } from '../../../helpers/db/schemas/id.schema';
-import { CategoryCreateSchema, CategoryUpdateSchema } from './validations/item-category.schema';
+import {
+  CategoryCreateSchema,
+  CategoryUpdateSchema,
+} from './validations/item-category.schema';
 const itemCategoryRouter = express.Router();
 
 itemCategoryRouter.post(

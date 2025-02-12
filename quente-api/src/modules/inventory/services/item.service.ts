@@ -36,7 +36,7 @@ export class ItemService extends BaseService<Item> {
   async saveAll(items: Item[]): Promise<any> {
     try {
       items.forEach((item) => (item.createdAt = new Date()));
-      let itemModels = items.map((item) => new (this.getModel())(item));
+      const itemModels = items.map((item) => new (this.getModel())(item));
       const result = await this.getModel().bulkSave(itemModels);
       return result;
     } catch (error) {

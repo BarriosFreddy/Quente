@@ -5,7 +5,6 @@ const { DATABASE_URI, DATABASE_NAME_DEFAULT = '' } = process.env;
 @singleton()
 export class MongoDBService {
   private tenantConnectionsPool: { [key: string]: any } = {};
-  constructor() {}
 
   getConnection(dbName: string) {
     return this.connectionFactory(dbName);

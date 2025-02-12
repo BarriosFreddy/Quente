@@ -5,8 +5,8 @@ class ExpirationControl {
     public lotUnits: number,
     public lot: string,
     public expirationDate: string,
-    public organizationId: String,
-    public id: String,
+    public organizationId: string,
+    public id: string,
     public _id: Types.ObjectId,
   ) {}
 }
@@ -14,13 +14,13 @@ class ExpirationControl {
 class PricesRatio {
   constructor(
     public _id: Types.ObjectId,
-    public measurementUnit: String,
-    public price: Number,
-    public cost: Number,
-    public hash: String,
-    public main: String,
-    public multiplicity: Number,
-    public organizationId: String,
+    public measurementUnit: string,
+    public price: number,
+    public cost: number,
+    public hash: string,
+    public main: string,
+    public multiplicity: number,
+    public organizationId: string,
   ) {}
 }
 
@@ -49,7 +49,7 @@ export class Item {
     let unitsToRemove = units;
     for (let index = 0; index < this.expirationControl.length; index++) {
       const expControl: ExpirationControl = this.expirationControl[index];
-      let { lotUnits } = expControl;
+      const { lotUnits } = expControl;
       if (+lotUnits > +unitsToRemove) {
         this.expirationControl[index].lotUnits = +lotUnits - +unitsToRemove;
         break;

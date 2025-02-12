@@ -28,5 +28,4 @@ purchaseOrderRouter.get(
   purchaseOrderController.findAll,
 );
 
-
 export default purchaseOrderRouter;

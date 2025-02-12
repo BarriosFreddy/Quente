@@ -7,8 +7,8 @@ export class ClientQueryStrategy implements QueryStrategy {
 
   buildAggregate(): PipelineStage[] {
     let filters: any = {};
-    let conditions = [];
-    let { name, dni, page = 1, size = 10 } = this.clientQuery;
+    const conditions = [];
+    const { name, dni, page = 1, size = 10 } = this.clientQuery;
 
     name && conditions.push({ name: new RegExp(`${name}`, 'i') });
     dni && conditions.push({ dni: new RegExp(`${dni}`, 'i') });

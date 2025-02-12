@@ -30,7 +30,7 @@ export class KardexTransactionService extends BaseService<KardexTransaction> {
 
   async saveAll(kardexTransactions: KardexTransaction[]): Promise<any> {
     try {
-      let kardexTransactionModels = kardexTransactions.map(
+      const kardexTransactionModels = kardexTransactions.map(
         (kardex) => new (this.getModel())(kardex),
       );
       const result = await this.getModel().bulkSave(kardexTransactionModels);

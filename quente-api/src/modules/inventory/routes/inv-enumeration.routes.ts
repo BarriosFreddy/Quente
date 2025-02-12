@@ -35,5 +35,4 @@ invEnumerationRouter.get(
   invEnumerationController.findByCode,
 );
 
-
 export default invEnumerationRouter;

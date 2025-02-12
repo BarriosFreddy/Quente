@@ -7,16 +7,16 @@ export class PurchaseOrder {
     public items: [
       {
         _id: Types.ObjectId;
-        code: String;
-        name: String;
-        units: Number;
-        measurementUnit: String;
-        cost: Number;
-        stock: Number;
+        code: string;
+        name: string;
+        units: number;
+        measurementUnit: string;
+        cost: number;
+        stock: number;
       },
     ],
     public supplierId: Types.ObjectId,
-    public comments: String,
+    public comments: string,
     public createdAt: DateObject,
   ) {}
 }

@@ -7,8 +7,8 @@ export class ItemQueryStrategy implements QueryStrategy {
 
   buildAggregate(): PipelineStage[] {
     let filters: any = {};
-    let conditions = [];
-    let { name, code, stock, page = 1, size = 10 } = this.itemQuery;
+    const conditions = [];
+    const { name, code, stock, page = 1, size = 10 } = this.itemQuery;
 
     name && conditions.push({ name: new RegExp(`${name}`, 'i') });
     code && conditions.push({ code: new RegExp(`${code}`, 'i') });

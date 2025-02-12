@@ -1,4 +1,4 @@
-import { InferSchemaType } from "mongoose";
+import { InferSchemaType } from 'mongoose';
 import { moduleSchema } from '../db/schemas/module.schema';
 
-export type Module = InferSchemaType<typeof moduleSchema>
+export type Module = InferSchemaType<typeof moduleSchema>;

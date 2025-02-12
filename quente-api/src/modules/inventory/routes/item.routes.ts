@@ -6,10 +6,7 @@ import {
 } from '../../../helpers/middleware/validation.middleware';
 
 import itemController from './controllers/item.controller';
-import {
-  ItemCreateSchema,
-  ItemUpdateSchema,
-} from './validations/item.schema';
+import { ItemCreateSchema, ItemUpdateSchema } from './validations/item.schema';
 import { roleValidation } from '../../../helpers/middleware/role-validation.middleware';
 import { generateAuthKeyPair } from '../../../helpers/util';
 import { ModuleCode } from '../../core/entities/enums/modules-codes';

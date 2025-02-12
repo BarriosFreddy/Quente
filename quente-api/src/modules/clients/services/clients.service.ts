@@ -39,7 +39,9 @@ export class ClientService extends BaseService<Client> {
   async saveAll(clients: Client[]): Promise<any> {
     try {
       clients.forEach((client) => (client.createdAt = new Date()));
-      let clientModels = clients.map((client) => new (this.getModel())(client));
+      const clientModels = clients.map(
+        (client) => new (this.getModel())(client),
+      );
       const result = await this.getModel().bulkSave(clientModels);
       return result;
     } catch (error) {

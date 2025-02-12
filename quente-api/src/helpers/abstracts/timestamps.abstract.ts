@@ -1,5 +1,5 @@
 export class DateObject {
-  constructor(public date: Number, public offset: Number) {}
+  constructor(public date: number, public offset: number) {}
 }
 
 export class TimeStamps {

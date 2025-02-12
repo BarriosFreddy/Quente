@@ -1,4 +1,4 @@
-import { PipelineStage } from "mongoose";
+import { PipelineStage } from 'mongoose';
 
 export interface QueryStrategy {
   buildAggregate(): PipelineStage[];

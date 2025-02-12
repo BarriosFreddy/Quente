@@ -9,7 +9,9 @@
     "debug": "concurrently \"npx tsc --watch\" \"node --watch --inspect dist/index.js\"",
     "dev:ts": "npx tsc --watch",
     "dev:run": "node --watch dist/index.js",
-    "start:dev": "concurrently \"npx tsc --watch\" \"nodemon -q dist/index.js\""
+    "start:dev": "concurrently \"npx tsc --watch\" \"nodemon -q dist/index.js\"",
+    "lint": "eslint \"src/**/*.ts\"",
+    "lint:fix": "eslint \"src/**/*.ts\" --fix"
   },
   "keywords": [],
   "author": "",

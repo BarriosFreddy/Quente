@@ -22,7 +22,7 @@ class ItemCategoryController {
       categoryService,
     ).findAll({ name, code, page });
     if (parse === 'true') {
-      let itemCategoriesParse = categories.map(({ name, _id }) => {
+      const itemCategoriesParse = categories.map(({ name, _id }) => {
         return {
           label: name,
           value: _id,
