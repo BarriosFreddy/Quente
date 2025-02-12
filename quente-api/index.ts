@@ -39,7 +39,7 @@ const app: Express = express();
           NODE_ENV === 'production' ? FRONTEND_ORIGIN : 'http://localhost:3000',
       }),
     );
-    app.use(compression() as express.RequestHandler);
+    app.use(compression() as unknown as express.RequestHandler);
     app.use(express.urlencoded({ extended: true, limit: '5mb' }));
     app.use(morgan('common'));
     app.use(
