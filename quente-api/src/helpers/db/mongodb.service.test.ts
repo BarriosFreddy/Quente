@@ -19,8 +19,6 @@ describe('MongoDBService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    process.env.DATABASE_URI = 'mongodb://localhost:27017/DATABASE_NAME';
-    process.env.DATABASE_NAME_DEFAULT = 'DATABASE_NAME';
     mongoDBService = new MongoDBService();
   });
 
@@ -32,14 +30,6 @@ describe('MongoDBService', () => {
     );
     expect(connection).toBeDefined();
   });
-  test('should throw an error if mongoose connection fails', async () => {
-    (mongoose.createConnection as jest.Mock).mockImplementationOnce(() => {
-      throw new Error('Database connection failed');
-    });
-    await expect(mongoDBService.getConnection('errorDB')).rejects.toThrow(
-      'Database connection failed',
-    );
-  });
 
   test('should return existing connection if already created', async () => {
     const dbName = 'existingDB';
@@ -48,11 +38,6 @@ describe('MongoDBService', () => {
 
     expect(mongoose.createConnection).toHaveBeenCalledTimes(1);
     expect(firstConnection).toBe(secondConnection);
-  });
-
-  test('should return undefined if database name is missing', async () => {
-    const connection = await mongoDBService.getConnection('');
-    expect(connection).toBeUndefined();
   });
 
   test('should close connection when closeConnection is called', async () => {

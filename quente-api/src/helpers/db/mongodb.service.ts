@@ -8,22 +8,10 @@ const { DATABASE_URI, DATABASE_NAME_DEFAULT } = process.env;
 export class MongoDBService {
   private tenantConnectionsPool: Record<string, Connection> = {};
 
-  async getConnection(dbName: string): Promise<Connection | undefined> {
-    console.log({ DATABASE_URI, DATABASE_NAME_DEFAULT });
-    if (!DATABASE_URI || !DATABASE_NAME_DEFAULT) {
-      console.error('DATABASE_URI or DATABASE_NAME_DEFAULT is missing.');
-      return Promise.resolve(undefined);
-    }
-    if (!dbName) {
-      console.error('Database name is required.');
-      return undefined;
-    }
-
+  getConnection(dbName: string): Connection {
     if (!this.tenantConnectionsPool[dbName]) {
       try {
-        this.tenantConnectionsPool[dbName] = await this.connectionFactory(
-          dbName,
-        );
+        this.tenantConnectionsPool[dbName] = this.connectionFactory(dbName);
       } catch (error) {
         console.error(`Error creating connection for ${dbName}:`, error);
         throw new Error('Database connection failed');
@@ -33,7 +21,7 @@ export class MongoDBService {
     return this.tenantConnectionsPool[dbName];
   }
 
-  private async connectionFactory(tenantId: string): Promise<Connection> {
+  private connectionFactory(tenantId: string): Connection {
     if (!DATABASE_URI || !DATABASE_NAME_DEFAULT)
       throw new Error('Invalid database URI.');
     const uri = DATABASE_URI.replace(DATABASE_NAME_DEFAULT, tenantId);
