@@ -11,7 +11,10 @@
     "dev:run": "node --watch dist/index.js",
     "start:dev": "concurrently \"npx tsc --watch\" \"nodemon -q dist/index.js\"",
     "lint": "eslint \"src/**/*.ts\"",
-    "lint:fix": "eslint \"src/**/*.ts\" --fix"
+    "lint:fix": "eslint \"src/**/*.ts\" --fix",
+    "test": "jest --verbose --silent=false",
+    "test:watch": "jest --verbose --watch --silent=false",
+    "test:coverage": "jest --verbose --coverage"
   },
   "keywords": [],
   "author": "",
@@ -35,18 +38,24 @@
     "jsreport": "^3.13.0",
     "mongoose": "^6.8.2",
     "morgan": "^1.10.0",
-    "reflect-metadata": "^0.1.13",
+    "reflect-metadata": "^0.1.14",
     "tsyringe": "^4.7.0"
   },
   "devDependencies": {
+    "@babel/core": "^7.26.8",
+    "@babel/preset-env": "^7.26.8",
     "@types/bcryptjs": "^2.4.2",
     "@types/cookie-parser": "^1.4.3",
     "@types/express": "^4.17.15",
     "@types/express-session": "^1.17.5",
+    "@types/jest": "^29.5.14",
     "@types/jsonwebtoken": "^9.0.0",
     "@types/node": "^18.11.18",
     "@types/passport-local": "^1.0.34",
+    "babel-jest": "^29.7.0",
     "concurrently": "^7.6.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.5",
     "typescript": "^4.9.4"
   }
 }

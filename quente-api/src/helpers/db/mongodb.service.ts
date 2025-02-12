@@ -1,22 +1,62 @@
-import mongoose from 'mongoose';
+import 'reflect-metadata';
+import mongoose, { Connection } from 'mongoose';
 import { singleton } from 'tsyringe';
-const { DATABASE_URI, DATABASE_NAME_DEFAULT = '' } = process.env;
+
+const { DATABASE_URI, DATABASE_NAME_DEFAULT } = process.env;
 
 @singleton()
 export class MongoDBService {
-  private tenantConnectionsPool: { [key: string]: any } = {};
+  private tenantConnectionsPool: Record<string, Connection> = {};
 
-  getConnection(dbName: string) {
-    return this.connectionFactory(dbName);
+  async getConnection(dbName: string): Promise<Connection | undefined> {
+    console.log({ DATABASE_URI, DATABASE_NAME_DEFAULT });
+    if (!DATABASE_URI || !DATABASE_NAME_DEFAULT) {
+      console.error('DATABASE_URI or DATABASE_NAME_DEFAULT is missing.');
+      return Promise.resolve(undefined);
+    }
+    if (!dbName) {
+      console.error('Database name is required.');
+      return undefined;
+    }
+
+    if (!this.tenantConnectionsPool[dbName]) {
+      try {
+        this.tenantConnectionsPool[dbName] = await this.connectionFactory(
+          dbName,
+        );
+      } catch (error) {
+        console.error(`Error creating connection for ${dbName}:`, error);
+        throw new Error('Database connection failed');
+      }
+    }
+
+    return this.tenantConnectionsPool[dbName];
   }
 
-  private connectionFactory(tenantId: string) {
-    if (!this.tenantConnectionsPool[tenantId]) {
-      const uri = DATABASE_URI?.replace(DATABASE_NAME_DEFAULT, tenantId) || '';
-      const connection = mongoose.createConnection(uri);
-      this.tenantConnectionsPool[tenantId] = connection;
-      return this.tenantConnectionsPool[tenantId];
+  private async connectionFactory(tenantId: string): Promise<Connection> {
+    if (!DATABASE_URI || !DATABASE_NAME_DEFAULT)
+      throw new Error('Invalid database URI.');
+    const uri = DATABASE_URI.replace(DATABASE_NAME_DEFAULT, tenantId);
+    if (!uri) throw new Error('Invalid database URI.');
+
+    console.log(`Connecting to MongoDB: ${uri}`);
+
+    try {
+      return mongoose.createConnection(uri);
+    } catch (error) {
+      console.error(
+        `Failed to connect to MongoDB for tenant ${tenantId}:`,
+        error,
+      );
+      throw error;
     }
-    return this.tenantConnectionsPool[tenantId];
+  }
+
+  async closeConnection(dbName: string): Promise<void> {
+    if (this.tenantConnectionsPool[dbName]) {
+      await this.tenantConnectionsPool[dbName].close();
+      delete this.tenantConnectionsPool[dbName];
+      console.log(`Closed connection for ${dbName}`);
+    }
   }
 }
