@@ -27,7 +27,7 @@ export class MongoDBService {
     const uri = DATABASE_URI.replace(DATABASE_NAME_DEFAULT, tenantId);
     if (!uri) throw new Error('Invalid database URI.');
 
-    console.log(`Connecting to MongoDB: ${uri}`);
+    console.log(`Connecting to MongoDB`);
 
     try {
       return mongoose.createConnection(uri);
