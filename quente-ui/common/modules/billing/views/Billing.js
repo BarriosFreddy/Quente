@@ -53,12 +53,13 @@ const { REACT_APP_UI } = process.env;
 
 console.log({ REACT_APP_UI });
 
+const RESIZE_BREAKPOINT = 992;
+
 function Billing() {
   const dispatch = useDispatch();
   const saveSuccess = useSelector((state) => state.billing.saveSuccess);
   const saving = useSelector((state) => state.billing.saving);
   let [billingData, setBillingData] = useState(null);
-  let [fileURI, setFileURI] = useState(null);
   let [items, setItems] = useState([]);
   let [receivedAmount, setReceivedAmount] = useState(0);
   let [total, setTotal] = useState(0);
@@ -74,10 +75,22 @@ function Billing() {
   const isReceivedLTTotal = receivedAmount < total;
   const hasNotItems = items.length <= 0;
   const keyBuffer = useMemo(() => new Set(), []);
+  const [isSmallScreen, setIsSmallScreen] = useState(
+    window.innerWidth < RESIZE_BREAKPOINT
+  );
+  const [showItemsSmScreens, setShowItemsSmScreens] = useState(false);
 
   useEffect(() => {
-    dispatch(getAllItems())
-  }, [])
+    const handleResize = () => {
+      setIsSmallScreen(window.innerWidth < RESIZE_BREAKPOINT);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    dispatch(getAllItems());
+  }, []);
 
   useEffect(() => {
     dispatch(setSidebarUnfoldable(true));
@@ -220,6 +233,7 @@ function Billing() {
   const handleCharge = (e) => {
     e.stopPropagation();
     setPaying(true);
+    isSmallScreen && setShowItemsSmScreens(false)
   };
 
   const handleSave = async () => {
@@ -267,6 +281,9 @@ function Billing() {
   const hanndleReceivedAmount = (receivedAmount) =>
     setReceivedAmount(receivedAmount);
   const handleBack = () => setPaying(false);
+  const handleShowItemsSmScreens = () => {
+    setShowItemsSmScreens(!showItemsSmScreens);
+  };
   const isEqualsTo = (code, ...compareTo) => compareTo.includes(code);
   const handleKeydownPrice = ({ keyCode }) => {
     if ([CONSTANTS.ENTER_KEYCODE, CONSTANTS.TAB_KEYCODE].includes(keyCode))
@@ -280,131 +297,163 @@ function Billing() {
           <title>FACTURACIÓN</title>
         </Helmet>
         <CRow>
-          <CCol lg="6" style={{ padding: 0, margin: 0 }}>
-            <CCard style={{ height: "74vh" }}>
-              <CCardBody style={{ overflowY: "auto", fontSize: 14 }}>
-                <ClientSearchComponent ref={clientSearchComponentRef} />
-                <CTable small hover>
-                  <CTableHead>
-                    <CTableRow>
-                      <CTableHeaderCell colSpan={6}>
-                        Cantidad / Producto / Subtotal
-                      </CTableHeaderCell>
-                    </CTableRow>
-                  </CTableHead>
-                  <CTableBody>
-                    {items.map(
-                      ({ code, name, price, pricesRatio, measurementUnit }) => (
-                        <CTableRow key={code}>
-                          <CTableDataCell colSpan={2}>
-                            <CRow>
-                              <CCol
-                                style={{
-                                  display: "flex",
-                                  flexDirection: "row",
-                                }}
-                              >
-                                {isEqualsTo(
-                                  code,
-                                  REACT_APP_HELADERIA_BARCODE,
-                                  REACT_APP_VARIEDAD_BARCODE
-                                ) ? (
-                                  itemUnits[code]
-                                ) : (
-                                  <CFormInput
-                                    style={{ maxWidth: 60 }}
-                                    type="number"
-                                    min={1}
-                                    formNoValidate
-                                    size="sm"
-                                    name={code}
-                                    value={itemUnits[code]}
-                                    onChange={(event) =>
-                                      handleChangeUnits(event)
-                                    }
-                                  />
-                                )}
-                                {pricesRatio.length > 1 && (
-                                  <CFormSelect
-                                    name="measurementUnit"
-                                    value={measurementUnit}
-                                    required
-                                    size="sm"
-                                    onChange={(event) =>
-                                      handleChangeMeasurement(event, code)
-                                    }
-                                    options={[
-                                      ...(pricesRatio?.map(
-                                        ({ measurementUnit }) => ({
-                                          label: measurementUnit,
-                                          value: measurementUnit,
-                                        })
-                                      ) ?? []),
-                                    ]}
-                                  />
-                                )}
-                              </CCol>
-                            </CRow>
-                          </CTableDataCell>
-                          <CTableDataCell xs="12">{name}</CTableDataCell>
-                          <CTableDataCell xs="12" className="text-break">
-                            {isEqualsTo(
-                              code,
-                              REACT_APP_HELADERIA_BARCODE,
-                              REACT_APP_VARIEDAD_BARCODE
-                            ) ? (
-                              <CurrencyFormInput
-                                ref={itemPricesRef[code]}
-                                min={1}
-                                formNoValidate
-                                type="number"
-                                size="sm"
-                                name={code}
-                                value={itemPrices[code]}
-                                onChange={(event) =>
-                                  handleChangePrice(event, code)
-                                }
-                                onKeyDown={(event) => handleKeydownPrice(event)}
-                              />
-                            ) : (
-                              formatCurrency(price * itemUnits[code])
-                            )}
-                          </CTableDataCell>
-                          <CTableDataCell
-                            xs="12"
-                            className="text-break text-end fw-semibold"
-                          >
-                            <CButton
-                              size="sm"
-                              color="ligth"
-                              onClick={() => deleteItem(code)}
+          {(!isSmallScreen || (isSmallScreen && showItemsSmScreens)) && (
+            <CCol lg="6" style={{ padding: 0, margin: 0 }}>
+              <CCard style={{ height: "74vh" }}>
+                <CCardBody style={{ overflowY: "auto", fontSize: 14 }}>
+                  <ClientSearchComponent ref={clientSearchComponentRef} />
+                  {isSmallScreen && showItemsSmScreens && (
+                    <CRow>
+                      <CButton
+                        style={{ marginBottom: 10, marginTop: 10 }}
+                        variant="outline"
+                        type="button"
+                        color="primary"
+                        onClick={handleShowItemsSmScreens}
+                      >
+                        REGRESAR
+                      </CButton>
+                    </CRow>
+                  )}
+                  <CTable small hover>
+                    <CTableHead>
+                      <CTableRow>
+                        <CTableHeaderCell colSpan={6}>
+                          Cantidad / Producto / Subtotal
+                        </CTableHeaderCell>
+                      </CTableRow>
+                    </CTableHead>
+                    <CTableBody>
+                      {items.map(
+                        ({
+                          code,
+                          name,
+                          price,
+                          pricesRatio,
+                          measurementUnit,
+                        }) => (
+                          <CTableRow key={code}>
+                            <CTableDataCell colSpan={2}>
+                              <CRow>
+                                <CCol
+                                  style={{
+                                    display: "flex",
+                                    flexDirection: "row",
+                                  }}
+                                >
+                                  {isEqualsTo(
+                                    code,
+                                    REACT_APP_HELADERIA_BARCODE,
+                                    REACT_APP_VARIEDAD_BARCODE
+                                  ) ? (
+                                    itemUnits[code]
+                                  ) : (
+                                    <CFormInput
+                                      style={{ maxWidth: 60 }}
+                                      type="number"
+                                      min={1}
+                                      formNoValidate
+                                      size="sm"
+                                      name={code}
+                                      value={itemUnits[code]}
+                                      onChange={(event) =>
+                                        handleChangeUnits(event)
+                                      }
+                                    />
+                                  )}
+                                  {pricesRatio.length > 1 && (
+                                    <CFormSelect
+                                      name="measurementUnit"
+                                      value={measurementUnit}
+                                      required
+                                      size="sm"
+                                      onChange={(event) =>
+                                        handleChangeMeasurement(event, code)
+                                      }
+                                      options={[
+                                        ...(pricesRatio?.map(
+                                          ({ measurementUnit }) => ({
+                                            label: measurementUnit,
+                                            value: measurementUnit,
+                                          })
+                                        ) ?? []),
+                                      ]}
+                                    />
+                                  )}
+                                </CCol>
+                              </CRow>
+                            </CTableDataCell>
+                            <CTableDataCell xs="12">{name}</CTableDataCell>
+                            <CTableDataCell xs="12" className="text-break">
+                              {isEqualsTo(
+                                code,
+                                REACT_APP_HELADERIA_BARCODE,
+                                REACT_APP_VARIEDAD_BARCODE
+                              ) ? (
+                                <CurrencyFormInput
+                                  ref={itemPricesRef[code]}
+                                  min={1}
+                                  formNoValidate
+                                  type="number"
+                                  size="sm"
+                                  name={code}
+                                  value={itemPrices[code]}
+                                  onChange={(event) =>
+                                    handleChangePrice(event, code)
+                                  }
+                                  onKeyDown={(event) =>
+                                    handleKeydownPrice(event)
+                                  }
+                                />
+                              ) : (
+                                formatCurrency(price * itemUnits[code])
+                              )}
+                            </CTableDataCell>
+                            <CTableDataCell
+                              xs="12"
+                              className="text-break text-end fw-semibold"
                             >
-                              <CIcon icon={cilTrash} size="sm" />
-                            </CButton>
-                          </CTableDataCell>
-                        </CTableRow>
-                      )
-                    )}
-                  </CTableBody>
-                </CTable>
-              </CCardBody>
-            </CCard>
-          </CCol>
-          <CCol lg="6" style={{ padding: 0, margin: 0 }}>
-            <CCard style={{ height: "74vh", overflowY: "auto" }}>
-              <CCardBody>
-                {!paying && <BillingForm addItem={addItem} />}
-                {paying && (
-                  <PaymentComp
-                    cargeButtonRef={cargeButtonRef}
-                    setReceivedAmount={hanndleReceivedAmount}
-                    onBack={handleBack}
-                    total={total}
-                  />
-                )}
-              </CCardBody>
-            </CCard>
-          </CCol>
+                              <CButton
+                                size="sm"
+                                color="ligth"
+                                onClick={() => deleteItem(code)}
+                              >
+                                <CIcon icon={cilTrash} size="sm" />
+                              </CButton>
+                            </CTableDataCell>
+                          </CTableRow>
+                        )
+                      )}
+                    </CTableBody>
+                  </CTable>
+                </CCardBody>
+              </CCard>
+            </CCol>
+          )}
+          {(!isSmallScreen || (isSmallScreen && !showItemsSmScreens)) && (
+            <CCol lg="6" style={{ padding: 0, margin: 0 }}>
+              <CCard style={{ height: "74vh", overflowY: "auto" }}>
+                <CCardBody>
+                  {!paying && (
+                    <BillingForm
+                      addItem={addItem}
+                      hasSelectedItems={items.length > 0}
+                      isSmallScreen={isSmallScreen}
+                      onShowItemsSmScreens={handleShowItemsSmScreens}
+                    />
+                  )}
+                  {paying && (
+                    <PaymentComp
+                      cargeButtonRef={cargeButtonRef}
+                      setReceivedAmount={hanndleReceivedAmount}
+                      onBack={handleBack}
+                      total={total}
+                    />
+                  )}
+                </CCardBody>
+              </CCard>
+            </CCol>
+          )}
         </CRow>
         <CRow className="align-items-end">
           <CCard>

@@ -46,9 +46,13 @@ export const existByDNI = (dni) => async (dispatch, _, api) => {
 }
 
 export const getClientByDNI = (dni) => async (dispatch, _, api) => {
-  if (!dni) return
-  const { data, status } = await api.get(`/clients/dni/${dni}`)
-  if (status === 200) dispatch(setClient(data))
+  try {
+    if (!dni) return
+    const { data, status } = await api.get(`/clients/dni/${dni}`)
+    if (status === 200) dispatch(setClient(data))
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 function getLocally(state, queryParams) {

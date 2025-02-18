@@ -11,6 +11,9 @@ import {
 } from "../reducers/items.reducer";
 const OBJECT_ID_LENGTH = 24;
 
+//TODO handle errors. add trycath
+
+
 export const saveItem = (item) => async (dispatch, _, api) => {
   dispatch(setSaving(true));
   const _id = hexoid(OBJECT_ID_LENGTH)();
@@ -68,8 +71,12 @@ export const getItems =
   };
 
 export const getAllItems = () => async (dispatch, state, api) => {
-  const { data, status } = await api.get(`/items?size=1000`);
-  if (status === 200) await indexDBService.bulkPutItems(data);
+  try {
+    const { data, status } = await api.get(`/items?size=1000`);
+    if (status === 200) await indexDBService.bulkPutItems(data);
+  } catch (error) {
+    console.error(error);
+  }
 };
 
 function getLocally(state, queryParams) {

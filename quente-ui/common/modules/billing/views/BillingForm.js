@@ -91,6 +91,10 @@ const BillingForm = (props) => {
       ?.map(({ lotUnits }) => lotUnits)
       .reduce((acc, cur) => acc + cur, 0);
 
+  const onShowItemsSmScreens = () => {
+    props.onShowItemsSmScreens();
+  };
+
   return (
     <>
       <CContainer fluid>
@@ -118,6 +122,19 @@ const BillingForm = (props) => {
             </CInputGroup>
           </CCol>
         </CRow>
+        {props.isSmallScreen && props.hasSelectedItems && (
+          <CRow>
+            <CButton
+              style={{ marginBottom: 10, marginTop: 10 }}
+              variant="outline"
+              type="button"
+              color="primary"
+              onClick={onShowItemsSmScreens}
+            >
+              ITEMS
+            </CButton>
+          </CRow>
+        )}
         <CRow>
           <CCol>
             <CTable hover>

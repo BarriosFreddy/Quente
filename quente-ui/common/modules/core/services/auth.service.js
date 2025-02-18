@@ -27,13 +27,17 @@ export const logout = () => async (dispatch, _, api) => {
 }
 
 export const getInfoUser = () => async (dispatch, getState, api) => {
-  const state = getState()
-  const isonline = await isOnline()
-  const { data, status } = isonline
+  try {
+    const state = getState()
+    const isonline = await isOnline()
+    const { data, status } = isonline
     ? await api.get('/auth/info-user')
     : { status: 200, data: state.auth.infoUser }
   if (status === 200) {
     dispatch(setIsLoggedIn(!!data))
-    dispatch(setInfoUser(data))
+      dispatch(setInfoUser(data));
+    }
+  } catch (e) {
+    console.error(e);
   }
-}
+};
