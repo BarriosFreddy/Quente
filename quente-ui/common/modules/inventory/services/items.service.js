@@ -11,73 +11,90 @@ import {
 } from "../reducers/items.reducer";
 const OBJECT_ID_LENGTH = 24;
 
-//TODO handle errors. add trycath
-
-
 export const saveItem = (item) => async (dispatch, _, api) => {
-  dispatch(setSaving(true));
-  const _id = hexoid(OBJECT_ID_LENGTH)();
-  item._id = _id;
-  await api.post('/items', item)
-  const id = await quenteDB.items.add(item);
-  console.log({ id });
-  dispatch(saveSuccess(!!id));
-  dispatch(setSaving(false));
+  try {
+    dispatch(setSaving(true));
+    const _id = hexoid(OBJECT_ID_LENGTH)();
+    item._id = _id;
+    await api.post('/items', item);
+    const id = await quenteDB.items.add(item);
+    console.log({ id });
+    dispatch(saveSuccess(!!id));
+  } catch (error) {
+    console.error("Error saving item:", error);
+    dispatch(saveSuccess(false));
+  } finally {
+    dispatch(setSaving(false));
+  }
 };
 
 export const updateItem = (item) => async (dispatch, _, api) => {
-  dispatch(setSaving(true));
-  const itemToUpdate = { ...item };
-  const id = itemToUpdate._id;
-  delete itemToUpdate._id;
-  await api.put(`/items/${id}`, itemToUpdate)
-  const wasUpdated = await quenteDB.items.update(id, itemToUpdate);
-  dispatch(saveSuccess(wasUpdated));
-  dispatch(setSaving(false));
+  try {
+    dispatch(setSaving(true));
+    const itemToUpdate = { ...item };
+    const id = itemToUpdate._id;
+    delete itemToUpdate._id;
+    await api.put(`/items/${id}`, itemToUpdate);
+    const wasUpdated = await quenteDB.items.update(id, itemToUpdate);
+    dispatch(saveSuccess(wasUpdated));
+  } catch (error) {
+    console.error("Error updating item:", error);
+    dispatch(saveSuccess(false));
+  } finally {
+    dispatch(setSaving(false));
+  }
 };
 
 export const saveItemCategoriesBulk = (items) => async (dispatch, _, api) => {
-  const { status } = await api.post("/items/bulk", items);
-  dispatch(saveSuccess(status === 201));
+  try {
+    const { status } = await api.post("/items/bulk", items);
+    dispatch(saveSuccess(status === 201));
+  } catch (error) {
+    console.error("Error saving item categories in bulk:", error);
+    dispatch(saveSuccess(false));
+  }
 };
 
 export const existByCode = (code) => async (dispatch, _, api) => {
-  if (!code) return;
-  //const { data, status } = await api.get(`/items/code/${code}`)
-  const isRegistered = await quenteDB.items.where("code").equals(code).first();
-  dispatch(setExistsByCode(!!isRegistered));
+  try {
+    if (!code) return;
+    //const { data, status } = await api.get(`/items/code/${code}`)
+    const isRegistered = await quenteDB.items.where("code").equals(code).first();
+    dispatch(setExistsByCode(!!isRegistered));
+  } catch (error) {
+    console.error("Error checking existence by code:", error);
+    dispatch(setExistsByCode(false));
+  }
 };
 
 export const getItems =
   (queryParams, useCacheOnly = false) =>
   async (dispatch, getState, api) => {
-    dispatch(setFetching(true));
-    /*     const urlQueryParams = new URLSearchParams(queryParams).toString()
-    isonline = useCacheOnly ? false : await isOnline()
-    const { data, status } = isonline
-      ? await api.get(`/items${urlQueryParams.length > 0 ? '?' + urlQueryParams.toString() : ''}`)
-      : getLocally(getState(), queryParams) */
-    const status = 200;
-    const data = await quenteDB.items
-      .where("name")
-      .startsWithIgnoreCase(queryParams.name || "")
-      .or("code")
-      .equals(queryParams.code || "")
-      .offset(((queryParams.page || 1) - 1) * 10)
-      .limit(10)
-      .toArray();
-    dispatch(setItems(data));
-    dispatch(setFetching(false));
+    try {
+      dispatch(setFetching(true));
+      /*     const urlQueryParams = new URLSearchParams(queryParams).toString()
+      isonline = useCacheOnly ? false : await isOnline()
+      const { data, status } = isonline
+        ? await api.get(`/items${urlQueryParams.length > 0 ? '?' + urlQueryParams.toString() : ''}`)
+        : getLocally(getState(), queryParams) */
+      const status = 200;
+      const data = await quenteDB.items
+        .where("name")
+        .startsWithIgnoreCase(queryParams.name || "")
+        .or("code")
+        .equals(queryParams.code || "")
+        .offset(((queryParams.page || 1) - 1) * 10)
+        .limit(10)
+        .toArray();
+      dispatch(setItems(data));
+    } catch (error) {
+      console.error("Error fetching items:", error);
+      dispatch(setItems([]));
+    } finally {
+      dispatch(setFetching(false));
+    }
   };
 
-export const getAllItems = () => async (dispatch, state, api) => {
-  try {
-    const { data, status } = await api.get(`/items?size=1000`);
-    if (status === 200) await indexDBService.bulkPutItems(data);
-  } catch (error) {
-    console.error(error);
-  }
-};
 
 function getLocally(state, queryParams) {
   const { items } = state.items.offline;
