@@ -231,7 +231,7 @@ function Billing() {
   };
 
   const handleCharge = (e) => {
-    e.stopPropagation();
+    e && e.stopPropagation();
     setPaying(true);
     isSmallScreen && setShowItemsSmScreens(false)
   };
@@ -459,6 +459,10 @@ function Billing() {
           <CCard>
             <CCardBody>
               <CRow className="mt-3">
+                <CCol lg="6" className="fs-1">
+                  <span>POR COBRAR</span>&nbsp;
+                  {formatCurrency(total)}
+                </CCol>
                 <CCol lg="5">
                   <div className="d-grid gap-2">
                     <CButton
@@ -473,10 +477,6 @@ function Billing() {
                       {paying ? "FACTURAR" : "COBRAR (Alt + C)"}
                     </CButton>
                   </div>
-                </CCol>
-                <CCol lg="6" className="fs-1">
-                  <span>POR COBRAR</span>&nbsp;
-                  {formatCurrency(total)}
                 </CCol>
               </CRow>
             </CCardBody>

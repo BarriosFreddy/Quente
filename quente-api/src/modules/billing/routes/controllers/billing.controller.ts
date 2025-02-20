@@ -37,7 +37,6 @@ class BillingController {
 
   async findTopSalesItems(req: Request, res: Response) {
     const { date } = req.params;
-    await setTenantIdToService(res, sequenceCodeService);
     const billings = await setTenantIdToService(
       res,
       billingService,

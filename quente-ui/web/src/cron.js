@@ -1,4 +1,4 @@
-import indexDBService from '@quente/common/shared/services/indexDB.service'
+import billingsRepository from '@quente/common/modules/billing/services/billings.repository'
 import axios from 'axios'
 /**
  *
@@ -20,7 +20,7 @@ const axiosInstance = axios.create({
 })
 
 const exportBillings = async () => {
-  const localBillings = await indexDBService.findBillings({ size: 10 })
+  const localBillings = await billingsRepository.find({ size: 10 })
   console.log('Objects in memory: ', localBillings.length)
   if (localBillings.length > 0) {
     for (const localBilling of localBillings) {
@@ -36,7 +36,7 @@ const exportBillings = async () => {
         }),
       )
       if (response && response.status === CREATED_HTTPCODE) {
-        const deleteResponse = await indexDBService.deleteBilling(localBillingId)
+        const deleteResponse = await billingsRepository.deleteById(localBillingId)
         deleteResponse && console.log('Delete object: ', localBillingId)
       }
     }
