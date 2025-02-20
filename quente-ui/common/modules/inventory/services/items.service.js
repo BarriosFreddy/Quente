@@ -16,7 +16,7 @@ export const saveItem = (item) => async (dispatch, _, api) => {
     dispatch(setSaving(true));
     const _id = hexoid(OBJECT_ID_LENGTH)();
     item._id = _id;
-    await api.post('/items', item);
+    await api.post("/items", item);
     const id = await quenteDB.items.add(item);
     console.log({ id });
     dispatch(saveSuccess(!!id));
@@ -59,7 +59,10 @@ export const existByCode = (code) => async (dispatch, _, api) => {
   try {
     if (!code) return;
     //const { data, status } = await api.get(`/items/code/${code}`)
-    const isRegistered = await quenteDB.items.where("code").equals(code).first();
+    const isRegistered = await quenteDB.items
+      .where("code")
+      .equals(code)
+      .first();
     dispatch(setExistsByCode(!!isRegistered));
   } catch (error) {
     console.error("Error checking existence by code:", error);
@@ -95,6 +98,14 @@ export const getItems =
     }
   };
 
+export const getAllItems = () => async (dispatch, state, api) => {
+  try {
+    const { data, status } = await api.get(`/items?size=1000`);
+    if (status === 200) await indexDBService.bulkPutItems(data);
+  } catch (error) {
+    console.error(error);
+  }
+};
 
 function getLocally(state, queryParams) {
   const { items } = state.items.offline;
