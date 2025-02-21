@@ -39,8 +39,6 @@ const BillingForm = (props) => {
   const [modal, setModal] = useState(false);
   const toggle = () => setModal(!modal);
   const searchTermInput = useRef();
-  const [result, setResult] = useState("");
-  const [barcode, setBarcode] = useState(null);
 
   const clear = useCallback(() => {
     dispatch(setItems([]));
@@ -96,8 +94,7 @@ const BillingForm = (props) => {
     props.onShowItemsSmScreens();
   };
 
-  console.log({ barcode });
-  
+  const handleDetectedBarcode = (code) => setSearchTerm(code);
 
   return (
     <>
@@ -139,7 +136,7 @@ const BillingForm = (props) => {
             </CButton>
           </CRow>
         )}
-        <BarcodeScanner onDetected={(code) => setBarcode(code)} />
+        <BarcodeScanner onDetected={handleDetectedBarcode} />
         <CRow>
           <CCol>
             <CTable hover>
