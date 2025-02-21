@@ -110,7 +110,7 @@ const ClientSearchComponent = forwardRef(function ClientSearchComponent(
   return (
     <>
       <CRow>
-        <CFormLabel htmlFor="searchInput" className="col-sm-2 col-form-label">
+        <CFormLabel htmlFor="searchInput" className="col-sm-2 col-form-label d-none d-md-block">
           Cliente:
         </CFormLabel>
         <CCol>

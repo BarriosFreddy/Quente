@@ -1,8 +1,8 @@
 import { createSlice } from '@reduxjs/toolkit'
 
 const initialState = {
-  sidebarShow: true,
-  sidebarUnfoldable: true,
+  sidebarShow: false,
+  sidebarUnfoldable: false,
   showHeader: true,
   showToast: false,
   toastConfig: {

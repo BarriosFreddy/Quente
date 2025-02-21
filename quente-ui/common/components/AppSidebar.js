@@ -20,6 +20,7 @@ import CIcon from '@coreui/icons-react'
 
 const AppSidebar = () => {
   const dispatch = useDispatch()
+  const { organization } = useSelector((state) => state.auth.infoUser) ?? {}
   const unfoldable = useSelector((state) => state.app.sidebarUnfoldable)
   const sidebarShow = useSelector((state) => state.app.sidebarShow)
 
@@ -36,9 +37,7 @@ const AppSidebar = () => {
         }}
       >
         <CSidebarBrand className="d-none d-md-flex" to="/">
-          {/* <CIcon className="sidebar-brand-full" icon={logoNegative} height={35} /> */}
-          {/* <CIcon className="sidebar-brand-narrow" icon={sygnet} height={35} /> */}
-          {!unfoldable && <h4>Droguería Francisca</h4>}
+          {!unfoldable && <h4>{organization?.name}</h4>}
         </CSidebarBrand>
         <CSidebarNav>
           <SimpleBar>

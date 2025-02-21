@@ -1,5 +1,5 @@
-import React from 'react'
-import { PropTypes } from 'prop-types'
+import React from "react";
+import { PropTypes } from "prop-types";
 import {
   CCard,
   CRow,
@@ -13,9 +13,16 @@ import {
   CTableBody,
   CTableDataCell,
   CTableFoot,
-} from '@coreui/react'
+} from "@coreui/react";
 
-function ItemCategoriesList({ itemCategories, fetching, page, onEdit, onPrevPage, onNextPage }) {
+function ItemCategoriesList({
+  itemCategories,
+  fetching,
+  page,
+  onEdit,
+  onPrevPage,
+  onNextPage,
+}) {
   return (
     <>
       <div className="d-lg-none">
@@ -24,8 +31,8 @@ function ItemCategoriesList({ itemCategories, fetching, page, onEdit, onPrevPage
             <CCard
               key={itemCategory.code}
               style={{
-                width: 'auto',
-                cursor: 'pointer',
+                width: "auto",
+                cursor: "pointer",
               }}
               className="my-2"
               onClick={() => onEdit(itemCategory)}
@@ -42,6 +49,37 @@ function ItemCategoriesList({ itemCategories, fetching, page, onEdit, onPrevPage
               </CRow>
             </CCard>
           ))}
+        <CRow className="py-1 text-center">
+          <CCol>Página {page}</CCol>
+        </CRow>
+        <CRow>
+          <CCol>
+            <div className="d-grid col-12 mx-auto">
+              <CButton
+                type="button"
+                variant="outline"
+                color="secondary"
+                disabled={fetching}
+                onClick={onPrevPage}
+              >
+                ANTERIOR
+              </CButton>
+            </div>
+          </CCol>
+          <CCol>
+            <div className="d-grid col-12 mx-auto">
+              <CButton
+                type="button"
+                variant="outline"
+                color="secondary"
+                disabled={fetching}
+                onClick={onNextPage}
+              >
+                SIGUIENTE
+              </CButton>
+            </div>
+          </CCol>
+        </CRow>
       </div>
       <div className="d-none d-lg-block">
         <CTable small hover>
@@ -122,10 +160,10 @@ function ItemCategoriesList({ itemCategories, fetching, page, onEdit, onPrevPage
         </CTable>
       </div>
     </>
-  )
+  );
 }
 
-export default ItemCategoriesList
+export default ItemCategoriesList;
 
 ItemCategoriesList.propTypes = {
   itemCategories: PropTypes.array.isRequired,
@@ -134,4 +172,4 @@ ItemCategoriesList.propTypes = {
   onEdit: PropTypes.func.isRequired,
   onPrevPage: PropTypes.func.isRequired,
   onNextPage: PropTypes.func.isRequired,
-}
+};

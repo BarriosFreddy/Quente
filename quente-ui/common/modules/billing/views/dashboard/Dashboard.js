@@ -28,7 +28,6 @@ import { Helmet } from 'react-helmet'
 const SALES_DAYS = [
   { label: 'Hoy', value: 0 },
   { label: 'Últimos 7 días', value: 6 },
-  { label: 'Mes pasado', value: 30 },
 ]
 
 const Dashboard = () => {
@@ -60,9 +59,6 @@ const Dashboard = () => {
               </h4>
             </CCol>
             <CCol sm={7}>
-              <CButton color="primary" className="float-end">
-                <CIcon icon={cilCloudDownload} />
-              </CButton>
               <CButtonGroup className="float-end me-3">
                 {SALES_DAYS.map(({ label, value }) => (
                   <CButton

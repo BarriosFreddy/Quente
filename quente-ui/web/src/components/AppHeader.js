@@ -11,68 +11,50 @@ import {
   CToast,
   CToastBody,
   CToastClose,
+  CHeaderToggler,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import {
-  cilChartLine,
-  cilDollar,
-  cilHistory,
-  cilHome,
-  cilInbox,
-  cilSitemap,
-  cilUser,
-} from '@coreui/icons'
+import { cilChartLine, cilDollar, cilHistory, cilInbox, cilMenu } from '@coreui/icons'
 
 import AppHeaderDropdown from '@quente/common/components/AppHeaderDropdown'
-import { setShowToast } from 'src/app.slice'
+import { setShowToast, setSidebarShow } from 'src/app.slice'
 
 const AppHeader = () => {
   const dispatch = useDispatch()
   const { organization } = useSelector((state) => state.auth.infoUser) ?? {}
   const showToast = useSelector((state) => state.app.showToast)
+  const sidebarShow = useSelector((state) => state.app.sidebarShow)
   const toastConfig = useSelector((state) => state.app.toastConfig)
 
   return (
     <CHeader position="sticky" className="mb-1">
       <CContainer>
-        {/* <CHeaderToggler className="ps-1" onClick={() => dispatch(setSidebarShow(!sidebarShow))}>
+        <CHeaderToggler className="ps-1" onClick={() => dispatch(setSidebarShow(!sidebarShow))}>
           <CIcon icon={cilMenu} size="lg" />
-        </CHeaderToggler> */}
+        </CHeaderToggler>
         <CHeaderBrand to="/" className="text-uppercase">
-          {/* <CIcon icon={logo} height={48} alt="Logo" /> */}
           {organization?.name}
         </CHeaderBrand>
-        <CHeaderNav>
-          <CNavLink to="/home" component={NavLink}>
-            <CIcon icon={cilHome} /> Home
-          </CNavLink>
-          <CNavLink to="/billing" component={NavLink}>
-            <CIcon icon={cilDollar} /> Facturación
-          </CNavLink>
-          <CNavLink to="/billings" component={NavLink}>
-            <CIcon icon={cilHistory} /> Historial
-          </CNavLink>
-          <CNavLink to="/billing-dashboard" component={NavLink}>
-            <CIcon icon={cilChartLine} /> Dashboard
-          </CNavLink>
-          <CNavLink to="/inventory-items" component={NavLink}>
-            <CIcon icon={cilInbox} /> Inventario
-          </CNavLink>
-          <CNavLink to="/inventory-item-categories" component={NavLink}>
-            <CIcon icon={cilSitemap} /> Cat. de items
-          </CNavLink>
-          <CNavLink to="/clients" component={NavLink}>
-            <CIcon icon={cilUser} /> Clientes
-          </CNavLink>
-        </CHeaderNav>
+        <div className="d-none d-md-block">
+          <CHeaderNav>
+            <CNavLink to="/billing" component={NavLink}>
+              <CIcon icon={cilDollar} /> Facturación
+            </CNavLink>
+            <CNavLink to="/billings" component={NavLink}>
+              <CIcon icon={cilHistory} /> Historial
+            </CNavLink>
+            <CNavLink to="/billing-dashboard" component={NavLink}>
+              <CIcon icon={cilChartLine} /> Dashboard
+            </CNavLink>
+            <CNavLink to="/inventory-items" component={NavLink}>
+              <CIcon icon={cilInbox} /> Inventario
+            </CNavLink>
+          </CHeaderNav>
+        </div>
         <CHeaderNav className="ms-3">
           <AppHeaderDropdown />
         </CHeaderNav>
       </CContainer>
-      {/* <CHeaderDivider />
-          <CContainer fluid>
-        <AppBreadcrumb />
-      </CContainer> */}
       <CToaster placement="top-end">
         <CToast
           visible={showToast}
