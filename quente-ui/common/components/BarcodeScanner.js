@@ -27,6 +27,13 @@ const BarcodeScanner = ({ onDetected }) => {
               "upc_reader",
             ],
           },
+          locate: true, // Helps Quagga find the barcode faster
+          numOfWorkers: navigator.hardwareConcurrency || 4, // Use multiple CPU threads
+          frequency: 10, // Scan every 10ms (reduces lag)
+          locator: {
+            patchSize: "medium", // Options: "x-small", "small", "medium", "large", "x-large"
+            halfSample: true,
+          },
         },
         function (err) {
           if (err) {
@@ -37,11 +44,32 @@ const BarcodeScanner = ({ onDetected }) => {
         }
       );
 
+      let lastScannedCodes = [];
+
       Quagga.onDetected((result) => {
-        console.log("Barcode detected:", result.codeResult.code);
-        onDetected(result.codeResult.code);
-        Quagga.stop(); // Stop scanning after detection
-        setScanning(false);
+        const scannedCode = result.codeResult.code;
+
+        lastScannedCodes.push(scannedCode);
+
+        // Keep only the last 5 scanned results
+        if (lastScannedCodes.length > 5) {
+          lastScannedCodes.shift();
+        }
+
+        // Check if 3 of the last 5 results are the same (to confirm accuracy)
+        const mostCommonCode = lastScannedCodes
+          .sort(
+            (a, b) =>
+              lastScannedCodes.filter((v) => v === a).length -
+              lastScannedCodes.filter((v) => v === b).length
+          )
+          .pop();
+
+        if (mostCommonCode === scannedCode) {
+          console.log("Final Barcode:", scannedCode);
+          onDetected(scannedCode);
+          Quagga.stop();
+        }
       });
     }
 
@@ -53,10 +81,7 @@ const BarcodeScanner = ({ onDetected }) => {
   return (
     <div>
       {scanning && (
-        <div
-          ref={scannerRef}
-          style={{ width: "100%", height: "500px"}}
-        ></div>
+        <div ref={scannerRef} style={{ width: "100%", height: "500px" }}></div>
       )}
       <button onClick={() => setScanning(true)} disabled={scanning}>
         {scanning ? "Scanning..." : "Start"}
