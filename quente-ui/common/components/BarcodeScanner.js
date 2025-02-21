@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import * as Quagga from "quagga";
+import { CButton } from "@coreui/react";
 
 const BarcodeScanner = ({ onDetected }) => {
   const scannerRef = useRef(null);
@@ -69,6 +70,7 @@ const BarcodeScanner = ({ onDetected }) => {
           console.log("Final Barcode:", scannedCode);
           onDetected(scannedCode);
           Quagga.stop();
+          setScanning(false);
         }
       });
     }
@@ -83,12 +85,14 @@ const BarcodeScanner = ({ onDetected }) => {
       {scanning && (
         <div ref={scannerRef} style={{ width: "100%", height: "500px" }}></div>
       )}
-      <button onClick={() => setScanning(true)} disabled={scanning}>
-        {scanning ? "Scanning..." : "Start"}
-      </button>
-      <button onClick={() => setScanning(false)} disabled={!scanning}>
-        Stop
-      </button>
+      <CButton
+        variant="outline"
+        type="button"
+        color="secondary"
+        onClick={() => setScanning(!scanning)}
+      >
+        {scanning ? "DETENER" : "SCAN"}
+      </CButton>
     </div>
   );
 };

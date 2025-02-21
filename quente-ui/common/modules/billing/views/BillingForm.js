@@ -102,6 +102,8 @@ const BillingForm = (props) => {
         <CRow>
           <CCol>
             <CInputGroup>
+        <BarcodeScanner onDetected={handleDetectedBarcode} />
+
               <CFormInput
                 ref={searchTermInput}
                 type="text"
@@ -136,7 +138,6 @@ const BillingForm = (props) => {
             </CButton>
           </CRow>
         )}
-        <BarcodeScanner onDetected={handleDetectedBarcode} />
         <CRow>
           <CCol>
             <CTable hover>
