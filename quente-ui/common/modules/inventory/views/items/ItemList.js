@@ -1,4 +1,4 @@
-import React from 'react'
+import React from "react";
 import {
   CCard,
   CRow,
@@ -13,16 +13,27 @@ import {
   CTableHeaderCell,
   CBadge,
   CTableFoot,
-} from '@coreui/react'
-import { formatCurrency, getMainPrice } from '@quente/common/utils'
-import { PropTypes } from 'prop-types'
-import dayjs from 'dayjs'
-import CIcon from '@coreui/icons-react'
-import { cilCopy, cilPencil } from '@coreui/icons'
+} from "@coreui/react";
+import { formatCurrency, getMainPrice } from "@quente/common/utils";
+import { PropTypes } from "prop-types";
+import dayjs from "dayjs";
+import CIcon from "@coreui/icons-react";
+import { cilCopy, cilPencil } from "@coreui/icons";
 
-const ItemList = ({ items, fetching, page, onEdit, onCopy, onPrevPage, onNextPage }) => {
+const ItemList = ({
+  items,
+  fetching,
+  page,
+  onEdit,
+  onCopy,
+  onPrevPage,
+  onNextPage,
+}) => {
   const getExpirationDates = (expirationControl) =>
-    expirationControl?.map(({ expirationDate, lotUnits }) => ({ expirationDate, lotUnits }))
+    expirationControl?.map(({ expirationDate, lotUnits }) => ({
+      expirationDate,
+      lotUnits,
+    }));
   return (
     <>
       <div className="d-lg-none">
@@ -30,15 +41,18 @@ const ItemList = ({ items, fetching, page, onEdit, onCopy, onPrevPage, onNextPag
           <CCard
             key={item.code}
             style={{
-              width: 'auto',
-              cursor: 'pointer',
+              width: "auto",
+              cursor: "pointer",
             }}
             className="my-2"
             onClick={() => onEdit(item)}
           >
             <CCardBody>
               <CRow className="g-0">
-                <CCol xs="7">{item.name}</CCol>
+                <CCol xs="7">
+                  <CRow>{item.name}</CRow>
+                  <CRow>{item.code}</CRow>
+                </CCol>
                 <CCol xs="2" className="text-end">
                   {getExpirationDates(item.expirationControl)
                     ?.filter(({ lotUnits }) => lotUnits > 0)
@@ -46,11 +60,11 @@ const ItemList = ({ items, fetching, page, onEdit, onCopy, onPrevPage, onNextPag
                       <CBadge
                         key={index}
                         color={
-                          dayjs(expirationDate).diff(dayjs(), 'days') > 90
-                            ? dayjs(expirationDate).diff(dayjs(), 'days') > 180
-                              ? 'success'
-                              : 'warning'
-                            : 'danger'
+                          dayjs(expirationDate).diff(dayjs(), "days") > 90
+                            ? dayjs(expirationDate).diff(dayjs(), "days") > 180
+                              ? "success"
+                              : "warning"
+                            : "danger"
                         }
                         shape="rounded-pill"
                       >
@@ -58,13 +72,44 @@ const ItemList = ({ items, fetching, page, onEdit, onCopy, onPrevPage, onNextPag
                       </CBadge>
                     ))}
                 </CCol>
-                <CCol xs="3" className="text-end">
+                <CCol xs="3" className="text-end fw-bold">
                   {formatCurrency(getMainPrice(item?.pricesRatio))}
                 </CCol>
               </CRow>
             </CCardBody>
           </CCard>
         ))}
+        <CRow>
+          <CCol className="py-1 text-center">Página {page}</CCol>
+        </CRow>
+        <CRow>
+          <CCol>
+            <div className="d-grid col-12 mx-auto">
+              <CButton
+                type="button"
+                variant="outline"
+                color="secondary"
+                disabled={fetching}
+                onClick={onPrevPage}
+              >
+                ANTERIOR
+              </CButton>
+            </div>
+          </CCol>
+          <CCol>
+            <div className="d-grid col-12 mx-auto">
+              <CButton
+                type="button"
+                variant="outline"
+                color="secondary"
+                disabled={fetching}
+                onClick={onNextPage}
+              >
+                SIGUIENTE
+              </CButton>
+            </div>
+          </CCol>
+        </CRow>
       </div>
       <div className="d-none d-lg-block">
         <CTable small hover>
@@ -80,7 +125,9 @@ const ItemList = ({ items, fetching, page, onEdit, onCopy, onPrevPage, onNextPag
           <CTableBody>
             {items?.map((item) => (
               <CTableRow key={item.code}>
-                <CTableDataCell className="text-uppercase text-break">{item.name}</CTableDataCell>
+                <CTableDataCell className="text-uppercase text-break">
+                  {item.name}
+                </CTableDataCell>
                 <CTableDataCell>{item.code}</CTableDataCell>
                 <CTableDataCell>
                   {getExpirationDates(item.expirationControl)
@@ -89,11 +136,11 @@ const ItemList = ({ items, fetching, page, onEdit, onCopy, onPrevPage, onNextPag
                       <CBadge
                         key={index}
                         color={
-                          dayjs(expirationDate).diff(dayjs(), 'days') > 90
-                            ? dayjs(expirationDate).diff(dayjs(), 'days') > 180
-                              ? 'success'
-                              : 'warning'
-                            : 'danger'
+                          dayjs(expirationDate).diff(dayjs(), "days") > 90
+                            ? dayjs(expirationDate).diff(dayjs(), "days") > 180
+                              ? "success"
+                              : "warning"
+                            : "danger"
                         }
                         shape="rounded-pill"
                       >
@@ -101,7 +148,9 @@ const ItemList = ({ items, fetching, page, onEdit, onCopy, onPrevPage, onNextPag
                       </CBadge>
                     ))}
                 </CTableDataCell>
-                <CTableDataCell>{formatCurrency(getMainPrice(item?.pricesRatio))}</CTableDataCell>
+                <CTableDataCell>
+                  {formatCurrency(getMainPrice(item?.pricesRatio))}
+                </CTableDataCell>
                 <CTableDataCell>
                   <CButton
                     size="sm"
@@ -170,10 +219,10 @@ const ItemList = ({ items, fetching, page, onEdit, onCopy, onPrevPage, onNextPag
         </CTable>
       </div>
     </>
-  )
-}
+  );
+};
 
-export default ItemList
+export default ItemList;
 
 ItemList.propTypes = {
   items: PropTypes.array.isRequired,
@@ -183,4 +232,4 @@ ItemList.propTypes = {
   onCopy: PropTypes.func.isRequired,
   onPrevPage: PropTypes.func.isRequired,
   onNextPage: PropTypes.func.isRequired,
-}
+};

@@ -90,30 +90,34 @@ function BillingsHistorical() {
         <CCard className="shadow border-10">
           <CCardHeader>
             <CRow>
-              <CCol md="4">
+              <CCol xs="2" lg="4">
                 {[DETAILING, PRINTING].includes(currentAction) && (
                   <CButton
                     variant="outline"
                     color="info"
                     onClick={() => handleBack()}
                   >
-                    <CIcon icon={cilArrowLeft} size="sm" />
-                    &nbsp; Regresar
+                    <div className="d-none d-lg-block">Regresar</div>
+                    <div className="d-lg-none">
+                      <CIcon icon={cilArrowLeft} size="sm" />
+                    </div>
                   </CButton>
                 )}
               </CCol>
-              <CCol md="4" className="text-center">
-                HISTORIAL DE FACTURAS
+              <CCol xs="8" lg="4" className="text-center">
+                HISTORIAL
               </CCol>
-              <CCol md="4" className="text-end">
+              <CCol xs="2" lg="4" className="text-end">
                 {[DETAILING].includes(currentAction) && (
                   <CButton
                     variant="outline"
                     color="secondary"
                     onClick={() => handlePrint(billing)}
                   >
-                    <CIcon icon={cilPrint} size="sm" />
-                    &nbsp; Imprimir
+                    <div className="d-none d-lg-block">Imprimir</div>
+                    <div className="d-lg-none">
+                      <CIcon icon={cilPrint} size="sm" />
+                    </div>
                   </CButton>
                 )}
               </CCol>
@@ -127,32 +131,32 @@ function BillingsHistorical() {
                     <>
                       <div className="d-lg-none">
                         {billings &&
-                          billings.map(
-                            ({ createdAt, code, billAmount }, index) => (
-                              <CCard
-                                key={index}
-                                style={{
-                                  width: "auto",
-                                }}
-                              >
-                                <CRow className="g-0" key={code}>
-                                  <CCol xs={8}>
-                                    <CCardBody>
-                                      <CRow>
-                                        <CCol>{formatDate(createdAt)}</CCol>
-                                      </CRow>
-                                      <CRow>
-                                        <CCol>{code}</CCol>
-                                      </CRow>
-                                      <CRow>
-                                        <CCol>${billAmount}</CCol>
-                                      </CRow>
-                                    </CCardBody>
+                          billings.map((billing, index) => (
+                            <CCard
+                              key={index}
+                              style={{
+                                width: "auto",
+                                cursor: "pointer",
+                              }}
+                              className="my-2"
+                              onClick={() => handleDetail(billing)}
+                            >
+                              <CCardBody>
+                                <CRow className="g-0">
+                                  <CCol xs="8">
+                                    <CRow>{formatDate(billing.createdAt)}</CRow>
+                                    <CRow>{billing.code}</CRow>
+                                    <CRow>
+                                      Productos: {billing.items?.length}
+                                    </CRow>
+                                  </CCol>
+                                  <CCol xs="4" className="text-end fw-bold">
+                                    {formatCurrency(billing.billAmount)}
                                   </CCol>
                                 </CRow>
-                              </CCard>
-                            )
-                          )}
+                              </CCardBody>
+                            </CCard>
+                          ))}
                       </div>
                       <div className="d-none d-lg-block">
                         <CTable small hover>
@@ -255,53 +259,49 @@ function BillingsHistorical() {
                 )}
                 {currentAction === DETAILING && (
                   <CCol>
-                    <div className="d-none d-lg-block">
-                      <CTable small hover>
-                        <CTableBody>
-                          <CTableRow>
-                            <CTableHeaderCell lg="2">Fecha</CTableHeaderCell>
-                            <CTableDataCell>
-                              {formatDate(billing.createdAt)}
-                            </CTableDataCell>
-                            <CTableHeaderCell lg="3">Código</CTableHeaderCell>
-                            <CTableDataCell colSpan={2}>
-                              {billing.code}
-                            </CTableDataCell>
-                          </CTableRow>
-                          <CTableRow>
-                            <CTableHeaderCell colSpan={5}>
-                              Items
-                            </CTableHeaderCell>
-                          </CTableRow>
-                          {billing.items?.map(
-                            (
-                              { _id, name, units, price, measurementUnit },
-                              index
-                            ) => (
-                              <CTableRow key={index}>
-                                <CTableDataCell colSpan={2}>
-                                  {name}
-                                </CTableDataCell>
-                                <CTableDataCell colSpan={2}>
-                                  {units + " " + measurementUnit}
-                                </CTableDataCell>
-                                <CTableDataCell colSpan={2}>
-                                  {price}
-                                </CTableDataCell>
-                              </CTableRow>
-                            )
-                          )}
-                          <CTableRow>
-                            <CTableHeaderCell
-                              className="text-end fs-4"
-                              colSpan={5}
-                            >
-                              Total {formatCurrency(billing.billAmount)}
-                            </CTableHeaderCell>
-                          </CTableRow>
-                        </CTableBody>
-                      </CTable>
-                    </div>
+                    <CTable small hover>
+                      <CTableBody>
+                        <CTableRow>
+                          <CTableHeaderCell lg="2">Fecha</CTableHeaderCell>
+                          <CTableDataCell>
+                            {formatDate(billing.createdAt)}
+                          </CTableDataCell>
+                          <CTableHeaderCell lg="3">Código</CTableHeaderCell>
+                          <CTableDataCell colSpan={2}>
+                            {billing.code}
+                          </CTableDataCell>
+                        </CTableRow>
+                        <CTableRow>
+                          <CTableHeaderCell colSpan={5}>Items</CTableHeaderCell>
+                        </CTableRow>
+                        {billing.items?.map(
+                          (
+                            { _id, name, units, price, measurementUnit },
+                            index
+                          ) => (
+                            <CTableRow key={index}>
+                              <CTableDataCell colSpan={2}>
+                                {name}
+                              </CTableDataCell>
+                              <CTableDataCell colSpan={2}>
+                                {units + " " + measurementUnit}
+                              </CTableDataCell>
+                              <CTableDataCell colSpan={2}>
+                                {price}
+                              </CTableDataCell>
+                            </CTableRow>
+                          )
+                        )}
+                        <CTableRow>
+                          <CTableHeaderCell
+                            className="text-end fs-4"
+                            colSpan={5}
+                          >
+                            Total {formatCurrency(billing.billAmount)}
+                          </CTableHeaderCell>
+                        </CTableRow>
+                      </CTableBody>
+                    </CTable>
                   </CCol>
                 )}
               </CRow>

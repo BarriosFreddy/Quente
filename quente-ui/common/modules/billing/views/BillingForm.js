@@ -27,7 +27,7 @@ import { setItems } from "./../../inventory/reducers/items.reducer";
 import { getItems } from "./../../inventory/services/items.service";
 import CONSTANTS from "../../../constants";
 import { useDidUpdate } from "./../../..//hooks/useDidUpdate";
-import { quenteDB } from "../../../shared/db/indexDB";
+import BarcodeScanner from "../../../components/BarcodeScanner";
 
 const { ENTER_KEYCODE, TAB_KEYCODE } = CONSTANTS;
 
@@ -40,6 +40,7 @@ const BillingForm = (props) => {
   const toggle = () => setModal(!modal);
   const searchTermInput = useRef();
   const [result, setResult] = useState("");
+  const [barcode, setBarcode] = useState(null);
 
   const clear = useCallback(() => {
     dispatch(setItems([]));
@@ -95,6 +96,9 @@ const BillingForm = (props) => {
     props.onShowItemsSmScreens();
   };
 
+  console.log({ barcode });
+  
+
   return (
     <>
       <CContainer fluid>
@@ -135,6 +139,7 @@ const BillingForm = (props) => {
             </CButton>
           </CRow>
         )}
+        <BarcodeScanner onDetected={(code) => setBarcode(code)} />
         <CRow>
           <CCol>
             <CTable hover>

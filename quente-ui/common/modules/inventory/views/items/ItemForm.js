@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
-import React, { useState, useEffect, createRef, useRef } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import PropTypes from 'prop-types'
+import React, { useState, useEffect, createRef, useRef } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import PropTypes from "prop-types";
 import {
   CButton,
   CRow,
@@ -19,189 +19,206 @@ import {
   CCard,
   CCardFooter,
   CFormCheck,
-} from '@coreui/react'
-import { getItemCategories } from '../../services/item-categories.service'
-import { existByCode } from '../../services/items.service'
-import CurrencyFormInput from '../../../../shared/components/CurrencyFormInput'
-import FormInput from '../../../../shared/components/FormInput'
-import { getInvEnumerationByCode } from '../../services/inv-enumerations.service'
-import CIcon from '@coreui/icons-react'
-import { cilTrash } from '@coreui/icons'
-import { getUUID } from '@quente/common/utils'
-import { setExistsByCode } from '../../reducers/items.reducer'
-import ConfirmDialog from './../../../../shared/components/ConfirmDialog';
+} from "@coreui/react";
+import { getItemCategories } from "../../services/item-categories.service";
+import { existByCode } from "../../services/items.service";
+import CurrencyFormInput from "../../../../shared/components/CurrencyFormInput";
+import FormInput from "../../../../shared/components/FormInput";
+import { getInvEnumerationByCode } from "../../services/inv-enumerations.service";
+import CIcon from "@coreui/icons-react";
+import { cilTrash } from "@coreui/icons";
+import { getUUID } from "@quente/common/utils";
+import { setExistsByCode } from "../../reducers/items.reducer";
+import ConfirmDialog from "./../../../../shared/components/ConfirmDialog";
 
-const initPriceRatioUUID = getUUID()
+const initPriceRatioUUID = getUUID();
 const itemInitialState = {
-  name: '',
-  code: '',
-  description: '',
-  categoryId: '',
-  sku: '',
-  reorderPoint: '',
-  laboratory: '',
+  name: "",
+  code: "",
+  description: "",
+  categoryId: "",
+  sku: "",
+  reorderPoint: "",
+  laboratory: "",
   pricesRatio: [
     {
-      measurementUnit: '',
-      price: '',
-      cost: '',
+      measurementUnit: "",
+      price: "",
+      cost: "",
       hash: initPriceRatioUUID,
       main: initPriceRatioUUID,
-      multiplicity: '1',
-      totalCost: '',
-      quantityPerPackage: '1',
+      multiplicity: "1",
+      totalCost: "",
+      quantityPerPackage: "1",
     },
   ],
   expirationControl: [
     {
-      lotUnits: '',
-      lot: '',
-      expirationDate: '',
+      lotUnits: "",
+      lot: "",
+      expirationDate: "",
       id: getUUID(),
     },
   ],
-}
+};
 
 function ItemForm(props) {
-  const dispatch = useDispatch()
-  const itemCategories = useSelector((state) => state.itemCategories.itemCategories)
-  const measurementUnits = useSelector((state) => state.invEnumerations.invEnumeration)
-  const codeRegistered = useSelector((state) => state.items.existsByCode)
-  const saving = useSelector((state) => state.items.saving)
-  const [item, setItem] = useState(itemInitialState)
+  const dispatch = useDispatch();
+  const itemCategories = useSelector(
+    (state) => state.itemCategories.itemCategories
+  );
+  const measurementUnits = useSelector(
+    (state) => state.invEnumerations.invEnumeration
+  );
+  const codeRegistered = useSelector((state) => state.items.existsByCode);
+  const saving = useSelector((state) => state.items.saving);
+  const [item, setItem] = useState(itemInitialState);
   const [failedValidations, setFailedValidations] = useState({
     code: false,
     description: false,
     name: false,
     reorderPoint: false,
     categoryId: false,
-  })
-  const [modal, setModal] = useState(false)
-  const confirmDialogRef = useRef()
+  });
+  const [modal, setModal] = useState(false);
+  const confirmDialogRef = useRef();
 
   useEffect(() => {
     if (props.item) {
-      let itemToSet = null
+      let itemToSet = null;
       if (props.copying) {
         itemToSet = {
           ...props.item,
-          code: '',
-        }
-        delete itemToSet._id
-      } else itemToSet = props.item
-      setItem(itemToSet)
+          code: "",
+        };
+        delete itemToSet._id;
+      } else itemToSet = props.item;
+      setItem(itemToSet);
     }
-    dispatch(getItemCategories({ parse: true }))
-    dispatch(getInvEnumerationByCode('UDM'))
-  }, [dispatch, props.item, props.copying])
+    dispatch(getItemCategories({ parse: true }));
+    dispatch(getInvEnumerationByCode("UDM"));
+  }, [dispatch, props.item, props.copying]);
 
   // INIT
-  const oldCode = props.item?.code
-  const toggle = () => setModal(!modal)
+  const oldCode = props.item?.code;
+  const toggle = () => setModal(!modal);
   const validateCodeExistence = (code) => {
-    if (oldCode !== code) dispatch(existByCode(code))
-  }
+    if (oldCode !== code) dispatch(existByCode(code));
+  };
 
   const closeBtn = (
     <button className="close" onClick={toggle}>
       &times;
     </button>
-  )
+  );
 
   const isValidForm = () => {
-    const { name, code, description, categoryId, pricesRatio, expirationControl } = {
+    const {
+      name,
+      code,
+      description,
+      categoryId,
+      pricesRatio,
+      expirationControl,
+    } = {
       ...item,
-    }
-    const failedValidationsObj = { ...failedValidations }
-    failedValidationsObj.code = !code || codeRegistered
-    failedValidationsObj.description = !description
-    failedValidationsObj.name = !name
-    failedValidationsObj.categoryId = !categoryId
+    };
+    const failedValidationsObj = { ...failedValidations };
+    failedValidationsObj.code = !code || codeRegistered;
+    failedValidationsObj.description = !description;
+    failedValidationsObj.name = !name;
+    failedValidationsObj.categoryId = !categoryId;
 
     pricesRatio?.forEach((priceRatio) => {
-      failedValidationsObj['measurementUnit' + priceRatio.hash] = !priceRatio.measurementUnit
-      failedValidationsObj['price' + priceRatio.hash] =
-        priceRatio.price <= 0 || Number.isNaN(+priceRatio.price)
-      failedValidationsObj['cost' + priceRatio.hash] =
-        priceRatio.cost <= 0 || Number.isNaN(+priceRatio.cost)
-      failedValidationsObj['multiplicity' + priceRatio.hash] =
-        !priceRatio.multiplicity || Number.isNaN(+priceRatio.multiplicity)
-    })
+      failedValidationsObj["measurementUnit" + priceRatio.hash] =
+        !priceRatio.measurementUnit;
+      failedValidationsObj["price" + priceRatio.hash] =
+        priceRatio.price <= 0 || Number.isNaN(+priceRatio.price);
+      failedValidationsObj["cost" + priceRatio.hash] =
+        priceRatio.cost <= 0 || Number.isNaN(+priceRatio.cost);
+      failedValidationsObj["multiplicity" + priceRatio.hash] =
+        !priceRatio.multiplicity || Number.isNaN(+priceRatio.multiplicity);
+    });
 
     expirationControl?.forEach((expControl) => {
-      failedValidationsObj['lot' + expControl.id] = !expControl.lot
-      failedValidationsObj['lotUnits' + expControl.id] =
-        expControl.lotUnits < 0 || Number.isNaN(+expControl.lotUnits)
-      failedValidationsObj['expirationDate' + expControl.id] = !expControl.expirationDate
-    })
-    setFailedValidations(failedValidationsObj)
-    return Object.values(failedValidationsObj).every((validation) => validation === false)
-  }
+      failedValidationsObj["lot" + expControl.id] = !expControl.lot;
+      failedValidationsObj["lotUnits" + expControl.id] =
+        expControl.lotUnits < 0 || Number.isNaN(+expControl.lotUnits);
+      failedValidationsObj["expirationDate" + expControl.id] =
+        !expControl.expirationDate;
+    });
+    setFailedValidations(failedValidationsObj);
+    return Object.values(failedValidationsObj).every(
+      (validation) => validation === false
+    );
+  };
 
   const save = async () => {
     if (isValidForm()) {
       props.onSave({
         ...item,
-      })
-      setItem(itemInitialState)
+      });
+      setItem(itemInitialState);
     }
-  }
+  };
 
   const cancel = () => {
-    confirmDialogRef.current.show(true)
-  }
+    confirmDialogRef.current.show(true);
+  };
 
   const handleResponseCancel = (sureCancel) => {
     if (sureCancel) {
-      props.onCancel()
-      setItem(itemInitialState)
-      dispatch(setExistsByCode(false))
-      return
+      props.onCancel();
+      setItem(itemInitialState);
+      dispatch(setExistsByCode(false));
+      return;
     }
-    confirmDialogRef.current.show(false)
-  }
+    confirmDialogRef.current.show(false);
+  };
 
   const handleChangeField = ({ target: { name, value } }) => {
     setItem({
       ...item,
       [name]: value,
-    })
-    setFailedValidations({ ...failedValidations, [name]: !value })
-    if (name === 'code') validateCodeExistence(value)
-  }
+    });
+    setFailedValidations({ ...failedValidations, [name]: !value });
+    if (name === "code") validateCodeExistence(value);
+  };
 
   const handleChangePricesRatio = (event, hash, index) => {
     const {
       target: { name, value },
-    } = event
-    let pricesRatioArray = [...item.pricesRatio]
-    if (name === 'main') {
+    } = event;
+    let pricesRatioArray = [...item.pricesRatio];
+    if (name === "main") {
       pricesRatioArray = pricesRatioArray.map((priceRatio) => ({
         ...priceRatio,
         [name]: value,
-      }))
+      }));
       setItem({
         ...item,
         pricesRatio: pricesRatioArray,
-      })
-      return
+      });
+      return;
     }
-    let priceRatioClone = pricesRatioArray.find((priceRatio) => priceRatio.hash === hash)
+    let priceRatioClone = pricesRatioArray.find(
+      (priceRatio) => priceRatio.hash === hash
+    );
     priceRatioClone = {
       ...priceRatioClone,
       [name]: value,
-    }
-    pricesRatioArray[index] = priceRatioClone
-    if (name === 'totalCost' || name === 'quantityPerPackage')
-      pricesRatioArray[index].cost = getCostoPorUnidad(pricesRatioArray[index])
+    };
+    pricesRatioArray[index] = priceRatioClone;
+    if (name === "totalCost" || name === "quantityPerPackage")
+      pricesRatioArray[index].cost = getCostoPorUnidad(pricesRatioArray[index]);
     setItem({
       ...item,
       pricesRatio: pricesRatioArray,
-    })
-  }
+    });
+  };
 
   const handleAddPriceRatio = () => {
-    const newItem = getNewItem()
+    const newItem = getNewItem();
     if ((item.pricesRatio ?? []).length === 0) {
       setItem({
         ...item,
@@ -211,8 +228,8 @@ function ItemForm(props) {
             main: newItem.hash,
           },
         ],
-      })
-      return
+      });
+      return;
     }
     if (item.pricesRatio?.length === 1) {
       setItem({
@@ -224,101 +241,99 @@ function ItemForm(props) {
           },
           newItem,
         ],
-      })
-      return
+      });
+      return;
     }
     setItem({
       ...item,
       pricesRatio: [...(item.pricesRatio ?? []), newItem],
-    })
-  }
+    });
+  };
 
   const handleDeletePriceRatio = (hash) => {
-    let pricesRatioClone = [...item.pricesRatio]
-    const priceRatioToDelete = pricesRatioClone.find((priceRatio) => priceRatio.hash === hash)
-    const pricesRatioNew = pricesRatioClone.filter((priceRatio) => priceRatio.hash !== hash)
+    let pricesRatioClone = [...item.pricesRatio];
+    const priceRatioToDelete = pricesRatioClone.find(
+      (priceRatio) => priceRatio.hash === hash
+    );
+    const pricesRatioNew = pricesRatioClone.filter(
+      (priceRatio) => priceRatio.hash !== hash
+    );
     if (priceRatioToDelete.main === priceRatioToDelete.hash) {
       pricesRatioNew[0] = {
         ...pricesRatioNew[0],
         main: pricesRatioNew[0].hash,
-      }
+      };
     }
-    setItem({ ...item, pricesRatio: pricesRatioNew })
-  }
+    setItem({ ...item, pricesRatio: pricesRatioNew });
+  };
 
   const handleChangeExpControl = (event, id, index) => {
     const {
       target: { name, value },
-    } = event
-    let expControlArray = [...item.expirationControl]
-    let expControlClone = expControlArray.find((expControl) => expControl.id === id)
+    } = event;
+    let expControlArray = [...item.expirationControl];
+    let expControlClone = expControlArray.find(
+      (expControl) => expControl.id === id
+    );
     expControlClone = {
       ...expControlClone,
       [name]: value,
-    }
-    expControlArray[index] = expControlClone
+    };
+    expControlArray[index] = expControlClone;
     setItem({
       ...item,
       expirationControl: expControlArray,
-    })
-  }
+    });
+  };
 
   const handleAddExpirationControl = () => {
-    const newExpirationControl = getNewExpirationControl()
+    const newExpirationControl = getNewExpirationControl();
     setItem({
       ...item,
-      expirationControl: [...(item.expirationControl ?? []), newExpirationControl],
-    })
-  }
+      expirationControl: [
+        ...(item.expirationControl ?? []),
+        newExpirationControl,
+      ],
+    });
+  };
 
   const handleDeleteExpirationControl = (id) => {
-    let expirationControlClone = [...item.expirationControl]
-    const expirationControlNew = expirationControlClone.filter((priceRatio) => priceRatio.id !== id)
-    setItem({ ...item, expirationControl: expirationControlNew })
-  }
+    let expirationControlClone = [...item.expirationControl];
+    const expirationControlNew = expirationControlClone.filter(
+      (priceRatio) => priceRatio.id !== id
+    );
+    setItem({ ...item, expirationControl: expirationControlNew });
+  };
 
   function getNewItem() {
     return {
-      measurementUnit: '',
-      price: '',
-      cost: '',
+      measurementUnit: "",
+      price: "",
+      cost: "",
       hash: getUUID(),
-      main: '',
+      main: "",
       multiplicity: 1,
-      totalCost: '',
-      quantityPerPackage: '1',
-    }
+      totalCost: "",
+      quantityPerPackage: "1",
+    };
   }
 
   function getNewExpirationControl() {
-    return { lotUnits: '', lot: '', expirationDate: '', id: getUUID() }
+    return { lotUnits: "", lot: "", expirationDate: "", id: getUUID() };
   }
 
   const getPricePercentage = (price, cost) => {
-    const pricePercentage = Math.round(((price - cost) * 100) / cost)
-    return pricePercentage < 0 || isNaN(pricePercentage) ? 0 : pricePercentage
-  }
+    const pricePercentage = Math.round(((price - cost) * 100) / cost);
+    return pricePercentage < 0 || isNaN(pricePercentage) ? 0 : pricePercentage;
+  };
 
-  const getCostoPorUnidad = ({ totalCost, quantityPerPackage }) => totalCost / quantityPerPackage
+  const getCostoPorUnidad = ({ totalCost, quantityPerPackage }) =>
+    totalCost / quantityPerPackage;
 
   return (
     <>
       <CContainer>
         <CCard>
-          <div className="py-1 d-lg-none">
-            <CRow className="m-1">
-              <CCol xs="3" lg={{ offset: 4, span: 4 }}>
-                <CButton variant="outline" color="secondary" onClick={() => cancel()}>
-                  CANCELAR
-                </CButton>
-              </CCol>
-              <CCol xs={{ offset: 5, span: 4 }}>
-                <CButton color="success" type="button" onClick={() => save()}>
-                  {props.item ? 'EDITAR' : 'GUARDAR'}
-                </CButton>
-              </CCol>
-            </CRow>
-          </div>
           <CCardBody>
             <CForm className="row g-3 needs-validation" noValidate>
               <CRow>
@@ -330,7 +345,9 @@ function ItemForm(props) {
                     name="code"
                     value={item.code}
                     feedback={
-                      codeRegistered ? 'El código ya se encuentra registrado' : 'Campo obligatorio'
+                      codeRegistered
+                        ? "El código ya se encuentra registrado"
+                        : "Campo obligatorio"
                     }
                     invalid={codeRegistered || failedValidations.code}
                     required
@@ -378,7 +395,7 @@ function ItemForm(props) {
                     invalid={failedValidations.categoryId}
                     onChange={(event) => handleChangeField(event)}
                     aria-label="Default select example"
-                    options={['Seleccione la categoria', ...itemCategories]}
+                    options={["Seleccione la categoria", ...itemCategories]}
                   />
                 </CCol>
                 <CCol xs="12" lg="3">
@@ -432,12 +449,21 @@ function ItemForm(props) {
                                 value={priceRatio.hash}
                                 checked={priceRatio.main === priceRatio.hash}
                                 onChange={(event) =>
-                                  handleChangePricesRatio(event, priceRatio.hash, index)
+                                  handleChangePricesRatio(
+                                    event,
+                                    priceRatio.hash,
+                                    index
+                                  )
                                 }
                               />
                             </CCol>
                           )}
-                          <CCol xs={{ offset: 0, span: item.pricesRatio?.length > 1 ? 10 : 12 }}>
+                          <CCol
+                            xs={{
+                              offset: 0,
+                              span: item.pricesRatio?.length > 1 ? 10 : 12,
+                            }}
+                          >
                             <CFormSelect
                               size="sm"
                               label="U. de medida"
@@ -445,12 +471,23 @@ function ItemForm(props) {
                               value={priceRatio.measurementUnit}
                               required
                               feedbackInvalid="Campo obligatorio"
-                              invalid={failedValidations['measurementUnit' + priceRatio.hash]}
+                              invalid={
+                                failedValidations[
+                                  "measurementUnit" + priceRatio.hash
+                                ]
+                              }
                               onChange={(event) =>
-                                handleChangePricesRatio(event, priceRatio.hash, index)
+                                handleChangePricesRatio(
+                                  event,
+                                  priceRatio.hash,
+                                  index
+                                )
                               }
                               aria-label="Default select example"
-                              options={['Seleccione...', ...(measurementUnits?.values ?? [])]}
+                              options={[
+                                "Seleccione...",
+                                ...(measurementUnits?.values ?? []),
+                              ]}
                             />
                           </CCol>
                         </CRow>
@@ -460,16 +497,20 @@ function ItemForm(props) {
                           size="sm"
                           label={`Precio ${getPricePercentage(
                             priceRatio.price,
-                            priceRatio.cost,
+                            priceRatio.cost
                           )}% ↑`}
                           type="tel"
                           name="price"
                           value={priceRatio.price}
                           feedbackInvalid="Campo obligatorio"
-                          invalid={failedValidations['price' + priceRatio.hash]}
+                          invalid={failedValidations["price" + priceRatio.hash]}
                           required
                           onChange={(event) =>
-                            handleChangePricesRatio(event, priceRatio.hash, index)
+                            handleChangePricesRatio(
+                              event,
+                              priceRatio.hash,
+                              index
+                            )
                           }
                         />
                       </CCol>
@@ -479,7 +520,9 @@ function ItemForm(props) {
                           label="Costo por unidad"
                           type="tel"
                           name="cost"
-                          value={getCostoPorUnidad(priceRatio) || priceRatio.cost}
+                          value={
+                            getCostoPorUnidad(priceRatio) || priceRatio.cost
+                          }
                         />
                       </CCol>
                       <CCol xs="12" lg="2">
@@ -489,9 +532,15 @@ function ItemForm(props) {
                           name="totalCost"
                           value={priceRatio.totalCost}
                           feedbackInvalid="Campo obligatorio"
-                          invalid={failedValidations['totalCost' + priceRatio.hash]}
+                          invalid={
+                            failedValidations["totalCost" + priceRatio.hash]
+                          }
                           onChange={(event) =>
-                            handleChangePricesRatio(event, priceRatio.hash, index)
+                            handleChangePricesRatio(
+                              event,
+                              priceRatio.hash,
+                              index
+                            )
                           }
                         />
                       </CCol>
@@ -503,15 +552,26 @@ function ItemForm(props) {
                           min={1}
                           value={priceRatio.quantityPerPackage}
                           feedbackInvalid="Campo obligatorio"
-                          invalid={failedValidations['quantityPerPackage' + priceRatio.hash]}
+                          invalid={
+                            failedValidations[
+                              "quantityPerPackage" + priceRatio.hash
+                            ]
+                          }
                           onChange={(event) =>
-                            handleChangePricesRatio(event, priceRatio.hash, index)
+                            handleChangePricesRatio(
+                              event,
+                              priceRatio.hash,
+                              index
+                            )
                           }
                         />
                       </CCol>
                       <CCol
                         xs="12"
-                        lg={{ offset: 0, span: item.pricesRatio?.length === 1 ? 2 : 1 }}
+                        lg={{
+                          offset: 0,
+                          span: item.pricesRatio?.length === 1 ? 2 : 1,
+                        }}
                       >
                         <FormInput
                           label="Multiplo"
@@ -520,9 +580,15 @@ function ItemForm(props) {
                           min={1}
                           value={priceRatio.multiplicity}
                           feedbackInvalid="Campo obligatorio"
-                          invalid={failedValidations['multiplicity' + priceRatio.hash]}
+                          invalid={
+                            failedValidations["multiplicity" + priceRatio.hash]
+                          }
                           onChange={(event) =>
-                            handleChangePricesRatio(event, priceRatio.hash, index)
+                            handleChangePricesRatio(
+                              event,
+                              priceRatio.hash,
+                              index
+                            )
                           }
                         />
                       </CCol>
@@ -531,7 +597,9 @@ function ItemForm(props) {
                           <CButton
                             color="ligth"
                             className="mt-4"
-                            onClick={() => handleDeletePriceRatio(priceRatio.hash)}
+                            onClick={() =>
+                              handleDeletePriceRatio(priceRatio.hash)
+                            }
                           >
                             <CIcon icon={cilTrash} size="sm" />
                           </CButton>
@@ -562,16 +630,23 @@ function ItemForm(props) {
                     <CRow key={index}>
                       <CCol
                         xs="12"
-                        lg={{ offset: 0, span: item.expirationControl?.length === 1 ? 4 : 3 }}
+                        lg={{
+                          offset: 0,
+                          span: item.expirationControl?.length === 1 ? 4 : 3,
+                        }}
                       >
                         <FormInput
                           label="Stock"
                           type="tel"
                           name="lotUnits"
                           feedbackInvalid="Campo obligatorio"
-                          invalid={failedValidations['lotUnits' + expControl.id]}
+                          invalid={
+                            failedValidations["lotUnits" + expControl.id]
+                          }
                           value={expControl.lotUnits}
-                          onChange={(event) => handleChangeExpControl(event, expControl.id, index)}
+                          onChange={(event) =>
+                            handleChangeExpControl(event, expControl.id, index)
+                          }
                         />
                       </CCol>
                       <CCol xs="12" lg="4">
@@ -582,9 +657,11 @@ function ItemForm(props) {
                           uppercase="true"
                           name="lot"
                           feedbackInvalid="Campo obligatorio"
-                          invalid={failedValidations['lot' + expControl.id]}
+                          invalid={failedValidations["lot" + expControl.id]}
                           value={expControl.lot}
-                          onChange={(event) => handleChangeExpControl(event, expControl.id, index)}
+                          onChange={(event) =>
+                            handleChangeExpControl(event, expControl.id, index)
+                          }
                         />
                       </CCol>
                       <CCol xs="12" lg="4">
@@ -594,9 +671,13 @@ function ItemForm(props) {
                           type="date"
                           name="expirationDate"
                           feedbackInvalid="Campo obligatorio"
-                          invalid={failedValidations['expirationDate' + expControl.id]}
+                          invalid={
+                            failedValidations["expirationDate" + expControl.id]
+                          }
                           value={expControl.expirationDate}
-                          onChange={(event) => handleChangeExpControl(event, expControl.id, index)}
+                          onChange={(event) =>
+                            handleChangeExpControl(event, expControl.id, index)
+                          }
                         />
                       </CCol>
                       {item.expirationControl?.length > 1 && (
@@ -604,7 +685,9 @@ function ItemForm(props) {
                           <CButton
                             color="ligth"
                             className="mt-4"
-                            onClick={() => handleDeleteExpirationControl(expControl.id)}
+                            onClick={() =>
+                              handleDeleteExpirationControl(expControl.id)
+                            }
                           >
                             <CIcon icon={cilTrash} size="sm" />
                           </CButton>
@@ -629,19 +712,26 @@ function ItemForm(props) {
             </CForm>
           </CCardBody>
           <CCardFooter className="mt-2">
-            <div className="d-none d-lg-block">
-              <CRow className="mt-0">
-                <CCol className="text-center" xs="8" lg={{ offset: 4, span: 4 }}>
-                  <CButton color="success" type="button" disabled={saving} onClick={() => save()}>
-                    {props.item && props.item?.id ? 'EDITAR' : 'GUARDAR'}
-                  </CButton>
-                  &nbsp; &nbsp;
-                  <CButton variant="outline" color="secondary" onClick={() => cancel()}>
-                    CANCELAR
-                  </CButton>
-                </CCol>
-              </CRow>
-            </div>
+            <CRow className="mt-0">
+              <CCol className="text-center" lg={{ offset: 4, span: 4 }}>
+                <CButton
+                  color="success"
+                  type="button"
+                  disabled={saving}
+                  onClick={() => save()}
+                >
+                  {props.item && props.item?.id ? "EDITAR" : "GUARDAR"}
+                </CButton>
+                &nbsp; &nbsp;
+                <CButton
+                  variant="outline"
+                  color="secondary"
+                  onClick={() => cancel()}
+                >
+                  CANCELAR
+                </CButton>
+              </CCol>
+            </CRow>
           </CCardFooter>
         </CCard>
       </CContainer>
@@ -655,7 +745,7 @@ function ItemForm(props) {
           Escaneando
         </CModalHeader>
         <CModalBody>
-          <div id="reader" width="600px" style={{ maxWidth: '750px' }}></div>
+          <div id="reader" width="600px" style={{ maxWidth: "750px" }}></div>
         </CModalBody>
         <CModalFooter>
           <CButton color="secondary" onClick={toggle}>
@@ -664,14 +754,14 @@ function ItemForm(props) {
         </CModalFooter>
       </CModal>
     </>
-  )
+  );
 }
 
-export default ItemForm
+export default ItemForm;
 
 ItemForm.propTypes = {
   onCancel: PropTypes.func.isRequired,
   onSave: PropTypes.func.isRequired,
   item: PropTypes.object,
   copying: PropTypes.bool,
-}
+};
