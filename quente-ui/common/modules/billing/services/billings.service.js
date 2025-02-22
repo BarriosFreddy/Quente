@@ -42,7 +42,6 @@ export const getBillings =
     dispatch(setFetching(true));
     try {
       const data = await billingsRepository.find({ page });
-      console.log({ data });
       if (data) dispatch(setBillings(data));
     } catch (error) {
       console.error("Error fetching billings:", error);

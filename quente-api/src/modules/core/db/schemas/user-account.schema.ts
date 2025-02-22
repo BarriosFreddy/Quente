@@ -23,5 +23,9 @@ export const userAccountSchema = new Schema({
     uid: String,
     name: String,
     tenantId: String,
+    address: String,
+    city: String,
+    country: String,
+    phoneNumber: String,
   },
 });

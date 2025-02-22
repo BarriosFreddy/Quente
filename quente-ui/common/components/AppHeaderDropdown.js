@@ -22,7 +22,7 @@ const AppHeaderDropdown = () => {
   const handleLogout = () => dispatch(logout())
 
   return (
-    <CDropdown variant="nav-item">
+    <CDropdown variant="nav-item" className='d-none d-md-block'>
       <CDropdownToggle placement="bottom-end" className="py-0" caret={false}>
         {/* <CAvatar size="md" /> */}
         <CIcon icon={cilUser} className="me-2" />

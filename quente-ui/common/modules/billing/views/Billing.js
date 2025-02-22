@@ -437,7 +437,7 @@ function Billing() {
                   {!paying && (
                     <BillingForm
                       addItem={addItem}
-                      hasSelectedItems={items.length > 0}
+                      selectedItemsNumbs={items.length}
                       isSmallScreen={isSmallScreen}
                       onShowItemsSmScreens={handleShowItemsSmScreens}
                     />

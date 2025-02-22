@@ -4,6 +4,10 @@ export const organizationSchema = new Schema({
   uid: String,
   name: String,
   nit: String,
+  address: String,
+  city: String,
+  country: String,
+  phoneNumber: String,
   logoLink: String,
   status: String,
   createdAt: {
