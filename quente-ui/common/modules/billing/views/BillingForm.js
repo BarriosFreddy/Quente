@@ -94,7 +94,10 @@ const BillingForm = (props) => {
     props.onShowItemsSmScreens();
   };
 
-  const handleDetectedBarcode = (code) => setSearchTerm(code);
+  const handleDetectedBarcode = (code) => {
+    setSearchTerm(code);
+    search();
+  };
 
   return (
     <>
@@ -102,8 +105,7 @@ const BillingForm = (props) => {
         <CRow>
           <CCol>
             <CInputGroup>
-        <BarcodeScanner onDetected={handleDetectedBarcode} />
-
+              <BarcodeScanner onDetected={handleDetectedBarcode} />
               <CFormInput
                 ref={searchTermInput}
                 type="text"
@@ -125,7 +127,7 @@ const BillingForm = (props) => {
             </CInputGroup>
           </CCol>
         </CRow>
-        {props.isSmallScreen && props.hasSelectedItems && (
+        {props.isSmallScreen && props.selectedItemsNumbs > 0 && (
           <CRow>
             <CButton
               style={{ marginBottom: 10, marginTop: 10 }}
@@ -134,7 +136,7 @@ const BillingForm = (props) => {
               color="primary"
               onClick={onShowItemsSmScreens}
             >
-              ITEMS
+              {`${props.selectedItemsNumbs} ITEMS`}
             </CButton>
           </CRow>
         )}

@@ -35,6 +35,7 @@ export const { LISTING, DETAILING, PRINTING } = {
 function BillingsHistorical() {
   const dispatch = useDispatch();
   const billings = useSelector((state) => state.billing.billings);
+  const { organization } = useSelector((state) => state.auth.infoUser) ?? {};
   const billingsOffline = useSelector(
     (state) => state.billing.offline.billings
   );
@@ -253,7 +254,10 @@ function BillingsHistorical() {
                 {currentAction === PRINTING && (
                   <>
                     <PDFViewer width="100%" height="550px">
-                      <BillingTemplate billing={billing} />
+                      <BillingTemplate
+                        billing={billing}
+                        organization={organization}
+                      />
                     </PDFViewer>
                   </>
                 )}
