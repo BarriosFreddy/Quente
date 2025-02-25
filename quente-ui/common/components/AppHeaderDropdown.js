@@ -14,7 +14,6 @@ import { useDispatch, useSelector } from 'react-redux'
 import { logout } from '../modules/core/services/auth.service'
 
 const { REACT_APP_RENDER_GIT_COMMIT = '' } = process.env
-console.log({ REACT_APP_RENDER_GIT_COMMIT })
 
 const AppHeaderDropdown = () => {
   const dispatch = useDispatch()

@@ -96,7 +96,7 @@ const BillingForm = (props) => {
 
   const handleDetectedBarcode = (code) => {
     setSearchTerm(code);
-    search();
+    search(code);
   };
 
   return (
