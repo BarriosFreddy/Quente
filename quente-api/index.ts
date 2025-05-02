@@ -9,6 +9,7 @@ import compression from 'compression';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import { registerRoutes } from './src/routes';
+import { errorHandler } from './src/helpers/middleware/error-handler.middleware';
 
 const LIMIT_RATE_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
 const LIMIT_RATE_MAX = 100;
@@ -35,6 +36,7 @@ const app: Express = express();
     app.use(
       cors({
         credentials: true,
+        methods: ['GET', 'POST', 'PUT', 'DELETE'],
         origin:
           NODE_ENV === 'production' ? FRONTEND_ORIGIN : 'http://localhost:3000',
       }),
@@ -55,6 +57,9 @@ const app: Express = express();
       }),
     );
     registerRoutes(app);
+
+    // Add the global error handler after all routes
+    app.use(errorHandler);
 
     const server = app.listen(PORT, () => {
       console.log(`Server is running. Available at http://localhost:${PORT}`);

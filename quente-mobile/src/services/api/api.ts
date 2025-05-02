@@ -6,12 +6,13 @@
  * documentation for more details.
  */
 import {ApiResponse, ApisauceInstance, HEADERS, create} from 'apisauce';
+import axios from 'axios';
 import Config from '../../config';
 import {GeneralApiProblem, getGeneralApiProblem} from './apiProblem';
 import type {ApiConfig, ApiFeedResponse} from './api.types';
 import type {EpisodeSnapshotIn} from '../../models/Episode';
 import * as storage from '../../utils/storage';
-import {AUTH_TOKEN} from '../../utils/constants';
+import {AUTH_TOKEN, REFRESH_TOKEN} from '../../utils/constants';
 
 /**
  * Configuring the apisauce instance.
@@ -28,6 +29,8 @@ export const DEFAULT_API_CONFIG: ApiConfig = {
 export class Api {
   apisauce: ApisauceInstance;
   config: ApiConfig;
+  isRefreshing: boolean = false;
+  refreshSubscribers: Array<(token: string) => void> = [];
 
   /**
    * Set up our API instance. Keep this lightweight!
@@ -43,6 +46,7 @@ export class Api {
       },
     });
 
+    // Request interceptor to add auth token
     this.apisauce.axiosInstance.interceptors.request.use(
       async config => {
         if (config.headers.Authorization?.toString().startsWith('Basic'))
@@ -54,6 +58,88 @@ export class Api {
       },
       e => Promise.reject(e),
     );
+
+    // Response interceptor to handle token refresh
+    this.apisauce.axiosInstance.interceptors.response.use(
+      response => response,
+      async error => {
+        const originalRequest = error.config;
+
+        // If error is 401 and we haven't already tried to refresh
+        if (error.response?.status === 401 && !originalRequest._retry) {
+          if (this.isRefreshing) {
+            // If we're already refreshing, wait for the new token
+            return new Promise(resolve => {
+              this.addRefreshSubscriber(token => {
+                originalRequest.headers.Authorization = `Bearer ${token}`;
+                resolve(axios(originalRequest));
+              });
+            });
+          }
+
+          originalRequest._retry = true;
+          this.isRefreshing = true;
+
+          try {
+            // Try to refresh the token
+            const refreshToken = await storage.load(REFRESH_TOKEN);
+            
+            if (!refreshToken) {
+              throw new Error('No refresh token available');
+            }
+
+            const response = await axios.post(
+              `${this.config.url}/api/v1/auth/refresh-token`,
+              {},
+              {
+                withCredentials: true,
+              },
+            );
+
+            if (response.status === 200) {
+              // Extract tokens from cookies (they are set by the server)
+              // We're just notifying subscribers here
+              this.onRefreshed('token-refreshed');
+              this.isRefreshing = false;
+              
+              // Retry the original request
+              originalRequest.headers.Authorization = `Bearer token-refreshed`;
+              return axios(originalRequest);
+            } else {
+              throw new Error('Token refresh failed');
+            }
+          } catch (refreshError) {
+            this.isRefreshing = false;
+            this.refreshSubscribers = [];
+            
+            // Clear tokens on refresh failure
+            await storage.remove(AUTH_TOKEN);
+            await storage.remove(REFRESH_TOKEN);
+            
+            // Redirect to login or handle authentication failure
+            // This would typically be handled by your navigation/auth state
+            return Promise.reject(refreshError);
+          }
+        }
+
+        return Promise.reject(error);
+      },
+    );
+  }
+
+  /**
+   * Add a subscriber to be notified when token is refreshed
+   */
+  addRefreshSubscriber(callback: (token: string) => void) {
+    this.refreshSubscribers.push(callback);
+  }
+
+  /**
+   * Notify all subscribers that token has been refreshed
+   */
+  onRefreshed(token: string) {
+    this.refreshSubscribers.forEach(callback => callback(token));
+    this.refreshSubscribers = [];
   }
 
   setHeaders(headers: HEADERS) {

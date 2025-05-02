@@ -13,6 +13,42 @@ const axiosInstance = axios.create({
   validateStatus: () => true,
 })
 
+// Add response interceptor to handle token refresh
+axiosInstance.interceptors.response.use(
+  (response) => {
+    return response
+  },
+  async (error) => {
+    const originalRequest = error.config
+
+    // If error is 401 Unauthorized and we haven't already tried to refresh
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true
+
+      try {
+        // Attempt to refresh the token
+        const refreshResponse = await axios({
+          url: `${REACT_APP_BASE_URL}/api/v1/auth/refresh-token`,
+          method: 'POST',
+          withCredentials: true,
+        })
+
+        // If refresh successful, retry the original request
+        if (refreshResponse.status === 200) {
+          return axiosInstance(originalRequest)
+        }
+      } catch (refreshError) {
+        // If refresh fails, redirect to login
+        console.error('Token refresh failed:', refreshError)
+        window.location.href = '/login'
+        return Promise.reject(refreshError)
+      }
+    }
+
+    return Promise.reject(error)
+  },
+)
+
 export const ApiService = {
   async post(uri, data) {
     return retry(() =>

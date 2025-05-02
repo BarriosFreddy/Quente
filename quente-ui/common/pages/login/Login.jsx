@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useLocation } from "react-router-dom";
 import {
@@ -15,6 +15,7 @@ import {
   CInputGroup,
   CInputGroupText,
   CRow,
+  CSpinner,
 } from "@coreui/react";
 import CIcon from "@coreui/icons-react";
 import { cilLockLocked, cilUser } from "@coreui/icons";
@@ -30,10 +31,10 @@ const DEMO_VALUE = "demo";
 const Login = () => {
   const dispatch = useDispatch();
   const { search } = useLocation();
+  const [errorMessage, setErrorMessage] = useState("");
 
   const params = new URLSearchParams(search);
   const isDemo = params.get(MODE_PROPERTY) === DEMO_VALUE;
-  console.log({ isDemo });
 
   const {
     register,
@@ -50,14 +51,15 @@ const Login = () => {
     if (isLoggedIn) {
       navigate("/billing");
     }
-  }, [isLoggedIn]);
+  }, [isLoggedIn, navigate]);
 
   useEffect(() => () => dispatch(setLoading(false)), [dispatch]);
 
   const handleLogin = () => {
+    setErrorMessage("");
     handleSubmit((userAccountLogin) => {
-      const password = btoa(userAccountLogin.password);
-      dispatch(login({ ...userAccountLogin, password }));
+      // Password is now encoded in the auth service
+      dispatch(login(userAccountLogin));
     })();
   };
 
@@ -85,7 +87,7 @@ const Login = () => {
               <CCard className="p-4">
                 <CCardBody>
                   <CForm>
-                    <h1>Iniciar sessión</h1>
+                    <h1>Iniciar sesión</h1>
                     <p className="text-medium-emphasis">
                       Ingresa tus credenciales para poder acceder
                     </p>
@@ -98,9 +100,20 @@ const Login = () => {
                         placeholder="Correo electrónico"
                         autoComplete="email"
                         invalid={!!errors.email}
-                        {...register("email", { required: true })}
+                        {...register("email", { 
+                          required: "El correo electrónico es requerido",
+                          pattern: {
+                            value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                            message: "Correo electrónico inválido"
+                          }
+                        })}
                       />
                     </CInputGroup>
+                    {errors.email && (
+                      <CAlert color="danger" className="mt-1 mb-3 py-1">
+                        {errors.email.message}
+                      </CAlert>
+                    )}
                     <CInputGroup className="mb-4">
                       <CInputGroupText>
                         <CIcon icon={cilLockLocked} />
@@ -110,12 +123,23 @@ const Login = () => {
                         placeholder="Clave"
                         onKeyDown={onKeyDownLogin}
                         invalid={!!errors.password}
-                        {...register("password", { required: true })}
+                        {...register("password", { 
+                          required: "La clave es requerida",
+                          minLength: {
+                            value: 6,
+                            message: "La clave debe tener al menos 6 caracteres"
+                          }
+                        })}
                       />
                     </CInputGroup>
+                    {errors.password && (
+                      <CAlert color="danger" className="mt-1 mb-3 py-1">
+                        {errors.password.message}
+                      </CAlert>
+                    )}
                     {!loginSuccess && (
                       <CAlert color="danger">
-                        Correo electrónico y/o clave incorrecta
+                        {errorMessage || "Correo electrónico y/o clave incorrecta"}
                       </CAlert>
                     )}
                     <CRow>
@@ -136,7 +160,13 @@ const Login = () => {
                             className="px-4 fw-bold"
                             disabled={loading}
                           >
-                            {isDemo ? "ACCEDE AL DEMO" : "ACCEDER"}
+                            {loading ? (
+                              <CSpinner size="sm" color="light" />
+                            ) : isDemo ? (
+                              "ACCEDE AL DEMO"
+                            ) : (
+                              "ACCEDER"
+                            )}
                           </CButton>
                         </div>
                       </CCol>

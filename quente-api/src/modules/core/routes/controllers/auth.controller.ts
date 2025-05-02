@@ -2,55 +2,90 @@ import { UserAccountLogin } from '../../types/user-account-login.type';
 import { Request, Response } from 'express';
 import { container } from 'tsyringe';
 import { AuthService } from '../../services/auth.service';
+import { asyncHandler } from '../../../../helpers/middleware/async-handler.middleware';
+import { UnauthorizedError } from '../../../../helpers/errors/app-error';
 
 const { NODE_ENV = 'development' } = process.env;
 
 const authService = container.resolve(AuthService);
 
 class AuthController {
-  async authenticate(req: Request, res: Response) {
+  authenticate = asyncHandler(async (req: Request, res: Response) => {
     const userAccountLogin: UserAccountLogin = req.body;
-    const data =
-      (await authService.authenticate(userAccountLogin)) ??
-      ({} as {
-        access_token: string;
-      });
-    if (!data.access_token)
-      return res.status(403).send({ message: 'credentials invalid' });
+    const authData = await authService.authenticate(userAccountLogin);
 
-    return res
-      .status(200)
-      .cookie('access_token', data.access_token, {
-        httpOnly: true,
-        secure: NODE_ENV === 'production',
-        sameSite: NODE_ENV === 'production' ? 'none' : 'lax',
-        maxAge: 1000 * 60 * 60 * 720, // ms * m * h * M
-      })
-      .send(data);
-  }
+    // Set the access token as an HTTP-only cookie
+    res.cookie('access_token', authData.access_token, {
+      httpOnly: true,
+      secure: NODE_ENV === 'production',
+      sameSite: NODE_ENV === 'production' ? 'none' : 'lax',
+      maxAge: 60 * 60 * 1000, // 1 hour
+    });
 
-  async logout(_req: Request, res: Response) {
-    res.locals.infoUser = null;
-    return res
-      .status(200)
-      .clearCookie('access_token', {
-        httpOnly: true,
-        secure: NODE_ENV === 'production',
-        sameSite: NODE_ENV === 'production' ? 'none' : 'lax',
-      })
-      .send({ message: 'Logged out successfully' });
-  }
+    // Set the refresh token as an HTTP-only cookie
+    res.cookie('refresh_token', authData.refresh_token, {
+      httpOnly: true,
+      secure: NODE_ENV === 'production',
+      sameSite: NODE_ENV === 'production' ? 'none' : 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
 
-  async infoUser(_req: Request, res: Response) {
-    const { infoUser } = res.locals;
-    if (infoUser) {
-      res.status(200).send(infoUser);
-    } else {
-      res.status(403).send(null);
+    // Return user data without tokens
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { access_token, refresh_token, ...userData } = authData;
+    return res.status(200).json(userData);
+  });
+
+  refreshToken = asyncHandler(async (req: Request, res: Response) => {
+    const refreshToken = req.cookies.refresh_token;
+
+    if (!refreshToken) {
+      throw new UnauthorizedError('Refresh token is required');
     }
-  }
 
-  async initOrg(req: Request, res: Response) {
+    const { access_token } = await authService.refreshToken(refreshToken);
+
+    // Set the new access token as an HTTP-only cookie
+    res.cookie('access_token', access_token, {
+      httpOnly: true,
+      secure: NODE_ENV === 'production',
+      sameSite: NODE_ENV === 'production' ? 'none' : 'lax',
+      maxAge: 60 * 60 * 1000, // 1 hour
+    });
+
+    return res.status(200).json({ message: 'Token refreshed successfully' });
+  });
+
+  logout = asyncHandler(async (_req: Request, res: Response) => {
+    res.locals.infoUser = null;
+
+    // Clear both cookies
+    res.clearCookie('access_token', {
+      httpOnly: true,
+      secure: NODE_ENV === 'production',
+      sameSite: NODE_ENV === 'production' ? 'none' : 'lax',
+    });
+
+    res.clearCookie('refresh_token', {
+      httpOnly: true,
+      secure: NODE_ENV === 'production',
+      sameSite: NODE_ENV === 'production' ? 'none' : 'lax',
+    });
+
+    return res.status(200).json({ message: 'Logged out successfully' });
+  });
+
+  infoUser = asyncHandler(async (_req: Request, res: Response) => {
+    const { infoUser } = res.locals;
+
+    if (!infoUser) {
+      throw new UnauthorizedError('User information not available');
+    }
+
+    return res.status(200).json(infoUser);
+  });
+
+  initOrg = asyncHandler(async (req: Request, res: Response) => {
     const { name } = req.query;
     let conn = null;
     if (name && typeof name === 'string') {
@@ -58,7 +93,7 @@ class AuthController {
       console.log({ conn });
     }
     res.send({ conn });
-  }
+  });
 }
 
 const authController = new AuthController();
