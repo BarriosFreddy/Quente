@@ -55,6 +55,30 @@ export class ItemService extends BaseService<Item> {
       return Promise.reject(null);
     }
   }
+
+  /**
+   * Find items updated since a specific timestamp
+   * @param timestamp - ISO string timestamp
+   * @returns Array of items updated since the timestamp
+   */
+  async findUpdatedSince(timestamp: string): Promise<Item[]> {
+    try {
+      const date = new Date(timestamp);
+
+      // Find items where updatedAt or createdAt is greater than the timestamp
+      const items = await this.getModel()
+        .find({
+          $or: [{ updatedAt: { $gte: date } }, { createdAt: { $gte: date } }],
+        })
+        .exec();
+
+      return items.map((item) => Item.of(item));
+    } catch (error) {
+      console.error('Error finding updated items:', error);
+      return [];
+    }
+  }
+
   async findAll(itemQuery: ItemQueryI): Promise<Item[]> {
     const strategy: QueryStrategy = new ItemQueryStrategy(itemQuery);
     const items: Item[] = await this.getModel()

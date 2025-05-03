@@ -12,6 +12,7 @@
     "changelog": "auto-changelog --starting-version 0.0.1 --commit-limit false --hide-credit",
     "eject": "react-scripts eject",
     "lint": "eslint \"src/**/*.js\"",
+    "lint:fix": "eslint --fix --ext .js,.jsx,.ts,.tsx src/",
     "test:cov": "npm test -- --coverage --watchAll=false",
     "test:debug": "react-scripts --inspect-brk test --runInBand"
   },

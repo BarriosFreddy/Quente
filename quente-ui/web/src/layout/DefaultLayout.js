@@ -11,9 +11,11 @@ executeTasks()
 const DefaultLayout = (props) => {
   const dispatch = useDispatch()
   const showHeader = useSelector((state) => state.app.showHeader)
+
   useEffect(() => {
     dispatch(getAllItems())
   }, [dispatch])
+
   return (
     <div>
       <ErrorBoundary fallback={<h1>Algo salió mal!</h1>}>

@@ -11,7 +11,8 @@ import { clientsClaim } from 'workbox-core'
 import { ExpirationPlugin } from 'workbox-expiration'
 import { precacheAndRoute, createHandlerBoundToURL } from 'workbox-precaching'
 import { registerRoute } from 'workbox-routing'
-import { StaleWhileRevalidate } from 'workbox-strategies'
+import { StaleWhileRevalidate, CacheFirst, NetworkFirst } from 'workbox-strategies'
+import { CacheableResponsePlugin } from 'workbox-cacheable-response'
 
 clientsClaim()
 
@@ -31,32 +32,88 @@ registerRoute(
     // If this isn't a navigation, skip.
     if (request.mode !== 'navigate') {
       return false
-    } // If this is a URL that starts with /_, skip.
+    }
 
+    // If this is a URL that starts with /_, skip.
     if (url.pathname.startsWith('/_')) {
       return false
-    } // If this looks like a URL for a resource, because it contains // a file extension, skip.
+    }
 
-    if (url.pathname.match(fileExtensionRegexp)) {
+    // If this looks like a URL for a resource, because it contains
+    // a file extension, skip.
+    if (fileExtensionRegexp.test(url.pathname)) {
       return false
-    } // Return true to signal that we want to use the handler.
+    }
 
+    // Return true to signal that we want to use the handler.
     return true
   },
   createHandlerBoundToURL(process.env.PUBLIC_URL + '/index.html'),
 )
 
-// An example runtime caching route for requests that aren't handled by the
-// precache, in this case same-origin .png requests like those from in public/
+// Cache the Google Fonts stylesheets with a stale-while-revalidate strategy.
 registerRoute(
-  // Add in any other file extensions or routing criteria as needed.
-  ({ url }) => url.origin === self.location.origin && url.pathname.endsWith('.png'), // Customize this strategy as needed, e.g., by changing to CacheFirst.
+  ({ url }) => url.origin === 'https://fonts.googleapis.com',
   new StaleWhileRevalidate({
+    cacheName: 'google-fonts-stylesheets',
+  }),
+)
+
+// Cache the underlying font files with a cache-first strategy for 1 year.
+registerRoute(
+  ({ url }) => url.origin === 'https://fonts.gstatic.com',
+  new CacheFirst({
+    cacheName: 'google-fonts-webfonts',
+    plugins: [
+      new CacheableResponsePlugin({
+        statuses: [0, 200],
+      }),
+      new ExpirationPlugin({
+        maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+        maxEntries: 30,
+      }),
+    ],
+  }),
+)
+
+// Cache images with a cache-first strategy
+registerRoute(
+  ({ request }) => request.destination === 'image',
+  new CacheFirst({
     cacheName: 'images',
     plugins: [
-      // Ensure that once this runtime cache reaches a maximum size the
-      // least-recently used images are removed.
-      new ExpirationPlugin({ maxEntries: 50 }),
+      new CacheableResponsePlugin({
+        statuses: [0, 200],
+      }),
+      new ExpirationPlugin({
+        maxEntries: 60,
+        maxAgeSeconds: 30 * 24 * 60 * 60, // 30 Days
+      }),
+    ],
+  }),
+)
+
+// Cache CSS and JavaScript files with a stale-while-revalidate strategy
+registerRoute(
+  ({ request }) => request.destination === 'style' || request.destination === 'script',
+  new StaleWhileRevalidate({
+    cacheName: 'static-resources',
+  }),
+)
+
+// Cache API responses with a Network-First strategy
+registerRoute(
+  ({ url }) => url.pathname.startsWith('/api/'),
+  new NetworkFirst({
+    cacheName: 'api-responses',
+    plugins: [
+      new CacheableResponsePlugin({
+        statuses: [0, 200],
+      }),
+      new ExpirationPlugin({
+        maxEntries: 100,
+        maxAgeSeconds: 12 * 60 * 60, // 12 hours
+      }),
     ],
   }),
 )
@@ -69,4 +126,90 @@ self.addEventListener('message', (event) => {
   }
 })
 
-// Any other custom service worker logic can go here.
+// Background sync for offline operations
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'sync-pending-operations') {
+    event.waitUntil(syncPendingOperations())
+  }
+})
+
+// Function to sync pending operations
+async function syncPendingOperations() {
+  try {
+    // Open the IndexedDB database
+    const db = await openDatabase()
+
+    // Get pending operations from sync queue
+    const syncQueue = await db.getAll('syncQueue')
+
+    // Process each operation
+    for (const operation of syncQueue) {
+      try {
+        // Attempt to sync with server
+        const response = await fetch(
+          `/api/v1/${operation.entity}${operation.id ? `/${operation.id}` : ''}`,
+          {
+            method: operation.method,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(operation.data),
+            credentials: 'include',
+          },
+        )
+
+        if (response.ok) {
+          // If successful, remove from queue
+          await db.delete('syncQueue', operation.id)
+
+          // Update local data with server response
+          const responseData = await response.json()
+          await db.put(operation.entity, responseData)
+        }
+      } catch (error) {
+        console.error('Error syncing operation:', error)
+      }
+    }
+  } catch (error) {
+    console.error('Error in background sync:', error)
+  }
+}
+
+// Helper function to open IndexedDB
+function openDatabase() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('quente_db', 1)
+
+    request.onerror = () => reject(request.error)
+    request.onsuccess = () => resolve(request.result)
+  })
+}
+
+// Listen for fetch events to handle offline responses
+self.addEventListener('fetch', (event) => {
+  // Only handle API requests
+  if (event.request.url.includes('/api/v1/') && event.request.method === 'GET') {
+    event.respondWith(
+      fetch(event.request).catch(() => {
+        // If network request fails, try to return from cache
+        return caches.match(event.request).then((cachedResponse) => {
+          if (cachedResponse) {
+            return cachedResponse
+          }
+
+          // If not in cache, return offline fallback
+          return new Response(
+            JSON.stringify({
+              error: 'You are offline and this data is not cached.',
+              offline: true,
+            }),
+            {
+              headers: { 'Content-Type': 'application/json' },
+              status: 503,
+            },
+          )
+        })
+      }),
+    )
+  }
+})

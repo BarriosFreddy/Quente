@@ -105,8 +105,49 @@ export class BillingService extends BaseService<Billing> {
     }
   }
 
-  async update(_: string, __: Billing): Promise<Billing | null> {
-    throw new Error('Not Supported');
+  /**
+   * Update a billing record
+   * @param id - The ID of the billing to update
+   * @param billing - The updated billing data
+   * @returns The updated billing
+   */
+  async update(id: string, billing: Billing): Promise<Billing | null> {
+    try {
+      // Set updatedAt timestamp
+      billing.updatedAt = new Date();
+
+      // Update the billing record
+      await this.getModel().updateOne({ _id: id }, billing);
+
+      // Return the updated record
+      return this.findOne(id);
+    } catch (error) {
+      console.error('Error updating billing:', error);
+      return Promise.reject(null);
+    }
+  }
+
+  /**
+   * Find billings updated since a specific timestamp
+   * @param timestamp - ISO string timestamp
+   * @returns Array of billings updated since the timestamp
+   */
+  async findUpdatedSince(timestamp: string): Promise<Billing[]> {
+    try {
+      const date = new Date(timestamp);
+
+      // Find billings where updatedAt or createdAt is greater than the timestamp
+      const billings = await this.getModel()
+        .find({
+          $or: [{ updatedAt: { $gte: date } }, { createdAt: { $gte: date } }],
+        })
+        .exec();
+
+      return billings;
+    } catch (error) {
+      console.error('Error finding updated billings:', error);
+      return [];
+    }
   }
 }
 

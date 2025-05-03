@@ -3,6 +3,7 @@ import { useDispatch } from 'react-redux'
 import { RouterProvider, createBrowserRouter } from 'react-router-dom'
 import './scss/style.scss'
 import { getInfoUser } from '@quente/common/modules/core/services/auth.service'
+import OfflineIndicator from './components/OfflineIndicator'
 
 const loading = (
   <div className="pt-3 text-center">
@@ -22,6 +23,21 @@ const Page500 = React.lazy(() => import('@quente/common/pages/page500/Page500'))
 const App = () => {
   const dispatch = useDispatch()
   dispatch(getInfoUser())
+
+  // Initialize the database and sync service when the app loads
+  useEffect(() => {
+    // Import services dynamically to avoid issues with SSR
+    import('./services/DatabaseService').then((db) => {
+      // Initialize database
+      console.log('Database initialized')
+
+      // Start sync service
+      import('./services/SyncService').then((syncService) => {
+        syncService.default.schedulePeriodicSync(30) // Sync every 5 minutes
+        console.log('Sync service initialized')
+      })
+    })
+  }, [])
 
   const router = createBrowserRouter([
     {
@@ -52,7 +68,12 @@ const App = () => {
     },
   ])
 
-  return <RouterProvider router={router} />
+  return (
+    <>
+      <OfflineIndicator />
+      <RouterProvider router={router} />
+    </>
+  )
 }
 
 export default App

@@ -1,0 +1,83 @@
+.conflict-resolution-modal {
+  .modal-dialog {
+    max-width: 800px;
+  }
+  
+  .modal-body {
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+}
+
+.global-strategy {
+  display: flex;
+  align-items: flex-end;
+  margin-bottom: 20px;
+  gap: 15px;
+  
+  .form-group {
+    flex-grow: 1;
+  }
+}
+
+.conflicts-container {
+  .conflict-item-container {
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #dee2e6;
+    
+    &:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+    }
+  }
+}
+
+.conflict-metadata {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+  font-size: 14px;
+  color: #6c757d;
+  background-color: #f8f9fa;
+  padding: 8px;
+  border-radius: 4px;
+}
+
+.conflict-strategy-select {
+  margin-bottom: 15px;
+  max-width: 300px;
+}
+
+.conflict-table {
+  margin-top: 10px;
+  
+  th, td {
+    vertical-align: middle;
+  }
+  
+  th {
+    background-color: #f8f9fa;
+  }
+}
+
+.conflict-field-row {
+  &:hover {
+    background-color: #f8f9fa;
+  }
+}
+
+.conflict-value {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  
+  &.local-value {
+    background-color: rgba(0, 123, 255, 0.1);
+  }
+  
+  &.server-value {
+    background-color: rgba(40, 167, 69, 0.1);
+  }
+}

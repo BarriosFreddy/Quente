@@ -34,4 +34,9 @@ export const billingSchema = new Schema({
     date: Number,
     offset: Number,
   },
+  // Add updatedAt field for tracking changes
+  updatedAt: {
+    type: Date,
+    default: null,
+  },
 });

@@ -7,3 +7,16 @@
 .height-68 {
     height: '68vh' 
 }
+
+// Sync status wrapper styles
+.sync-status-wrapper {
+    display: flex;
+    justify-content: flex-end;
+    padding: 0 1rem;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+    
+    .sync-status {
+        margin: 0.5rem 0;
+    }
+}

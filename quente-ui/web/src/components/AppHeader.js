@@ -18,6 +18,7 @@ import { cilChartLine, cilDollar, cilHistory, cilInbox, cilMenu } from '@coreui/
 
 import AppHeaderDropdown from '@quente/common/components/AppHeaderDropdown'
 import { setShowToast, setSidebarShow } from 'src/app.slice'
+import SyncStatus from './SyncStatus'
 
 const AppHeader = () => {
   const dispatch = useDispatch()
@@ -54,6 +55,9 @@ const AppHeader = () => {
         <CHeaderNav className="ms-3">
           <AppHeaderDropdown />
         </CHeaderNav>
+        <div className="sync-status-wrapper">
+          <SyncStatus />
+        </div>
       </CContainer>
       <CToaster placement="top-end">
         <CToast

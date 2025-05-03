@@ -69,6 +69,15 @@ export const ApiService = {
       }),
     )
   },
+  async delete(uri) {
+    return await retry(() =>
+      axiosInstance({
+        url: uri,
+        method: 'DELETE',
+        withCredentials: true,
+      }),
+    )
+  },
   async get(uri) {
     return await retry(() =>
       axiosInstance({
@@ -77,6 +86,20 @@ export const ApiService = {
         withCredentials: true,
       }),
     )
+  },
+  // Check if server is reachable
+  async checkConnection() {
+    try {
+      const response = await axiosInstance({
+        url: '/api/v1/health',
+        method: 'GET',
+        timeout: 5000, // Short timeout for quick check
+      })
+      return response.status >= 200 && response.status < 300
+    } catch (error) {
+      console.error('Server connection check failed:', error)
+      return false
+    }
   },
 }
 
