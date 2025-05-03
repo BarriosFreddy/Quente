@@ -1,5 +1,0 @@
-export default {
-	DRIVER: 'ROLE_DRIVER',
-	CLIENT: 'ROLE_PASSENGER',
-	ADMIN: 'ADMIN'
-}
