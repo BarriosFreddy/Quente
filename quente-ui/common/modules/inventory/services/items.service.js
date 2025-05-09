@@ -1,4 +1,5 @@
 import itemsRepository from "./items.repository";
+import isOnline from "is-online";
 import {
   saveSuccess,
   setItems,
@@ -6,12 +7,14 @@ import {
   setSaving,
   setFetching,
 } from "../reducers/items.reducer";
+import db from "../../../services/DatabaseService";
 
 export const saveItem = (item) => async (dispatch, _, api) => {
   try {
+    const isonline = await isOnline();
     dispatch(setSaving(true));
-    const id = await itemsRepository.save(item);
-    dispatch(saveSuccess(!!id));
+    db.saveItem(item)
+    if (!isonline) dispatch(saveSuccess(true));
   } catch (error) {
     console.error("Error saving item:", error);
     dispatch(saveSuccess(false));
@@ -22,13 +25,17 @@ export const saveItem = (item) => async (dispatch, _, api) => {
 
 export const updateItem = (item) => async (dispatch, _, api) => {
   try {
+    const isonline = await isOnline();
     dispatch(setSaving(true));
     const itemToUpdate = { ...item };
     const id = itemToUpdate._id;
     delete itemToUpdate._id;
-    //await api.put(`/items/${id}`, itemToUpdate);
-    const wasUpdated = await itemsRepository.update(id, itemToUpdate);
-    dispatch(saveSuccess(wasUpdated));
+    if (isonline) {
+      const { status } = await api.put(`/items/${id}`, itemToUpdate);
+      dispatch(saveSuccess(status === 201));
+    }
+    await itemsRepository.update(id, itemToUpdate);
+    if (!isonline) dispatch(saveSuccess(true));
   } catch (error) {
     console.error("Error updating item:", error);
     dispatch(saveSuccess(false));

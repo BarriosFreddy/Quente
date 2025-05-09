@@ -6,10 +6,10 @@ import {
   setCodeRegistered,
 } from '../reducers/item-categories.reducer'
 
-export const saveItemCategory = (billing) => async (dispatch, _, api) => {
+export const saveItemCategory = (itemCategory) => async (dispatch, _, api) => {
   dispatch(setSaving(true))
   try {
-    const { status } = await api.post('/item-categories', billing)
+    const { status } = await api.post('/item-categories', itemCategory)
     if (status === 201) {
       dispatch(saveSuccess(true))
       dispatch(getItemCategories({ page: 1 }))

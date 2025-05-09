@@ -8,12 +8,19 @@ import {
   setBillingsGraph,
   setBillingTopSales,
 } from "../reducers/billings.reducer";
+import isOnline from "is-online";
 
 export const saveBilling = (billing) => async (dispatch, getState, api) => {
   dispatch(setSaving(true));
   try {
+    const isonline = await isOnline();
+    if (isonline) {
+      const { status } = await api.post(`/billings`, billing);
+      dispatch(setSaveSuccess(status === 201));
+    }
     await billingsRepository.save(billing);
-    dispatch(setSaveSuccess(true));
+    if (!isonline) dispatch(setSaveSuccess(true));
+    dispatch(getBillings({ page: 1 }));
   } catch (error) {
     console.error("Error saving billing:", error);
     dispatch(setSaveSuccess(false));
@@ -26,8 +33,13 @@ export const saveBillingBulk =
   (billings) => async (dispatch, getState, api) => {
     dispatch(setSaving(true));
     try {
-      const { status } = await api.post("/billings/bulk", billings);
-      dispatch(setSaveSuccess(status === 201));
+      const isonline = await isOnline();
+      if (isonline) {
+        const { status } = await api.post("/billings/bulk", billings);
+        dispatch(setSaveSuccess(status === 201));
+      }
+      await billingsRepository.saveBulk(billings);
+      if (!isonline) dispatch(setSaveSuccess(true));
     } catch (error) {
       console.error("Error saving billing bulk:", error);
       dispatch(setSaveSuccess(false));
@@ -41,8 +53,14 @@ export const getBillings =
   async (dispatch, getState, api) => {
     dispatch(setFetching(true));
     try {
-      const data = await billingsRepository.find({ page });
-      if (data) dispatch(setBillings(data));
+      const isonline = await isOnline();
+      if (isonline) {
+        const { data, status } = await api.get(`/billings?size=1000`);
+        if (status === 200) dispatch(setBillings(data));
+      } else {
+        const localData = await billingsRepository.find({ page });
+        if (localData) dispatch(setBillings(localData));
+      }
     } catch (error) {
       console.error("Error fetching billings:", error);
     } finally {
@@ -53,9 +71,14 @@ export const getBillings =
 export const getBillingsGTDate = (date) => async (dispatch, _, api) => {
   dispatch(setFetching(true));
   try {
-    //const { data, status } = await api.get(`/billings/per/${date}`);
-    const data = await billingsRepository.findGreaterThanDate(date);
-    if (data) dispatch(setBillingsGraph(data));
+    const isonline = await isOnline();
+    if (isonline) {
+      const { data, status } = await api.get(`/billings/per/${date}`);
+      if (status === 200) dispatch(setBillingsGraph(data));
+    } else {
+      const localData = await billingsRepository.findGreaterThanDate(date);
+      if (localData) dispatch(setBillingsGraph(localData));
+    }
   } catch (error) {
     console.error("Error fetching billings greater than date:", error);
   } finally {
@@ -66,9 +89,14 @@ export const getBillingsGTDate = (date) => async (dispatch, _, api) => {
 export const getBillingTopSales = (date) => async (dispatch, _, api) => {
   dispatch(setFetching(true));
   try {
-    //const { data, status } = await api.get(`/billings/stats/top-sales/${date}`)
-    const data = await billingsRepository.findTopSalesItems(date);
-    if (data) dispatch(setBillingTopSales(data));
+    const isonline = await isOnline();
+    if (isonline) {
+      const { data, status } = await api.get(`/billings/stats/top-sales/${date}`);
+      if (status === 200) dispatch(setBillingTopSales(data));
+    } else {
+      const localData = await billingsRepository.findTopSalesItems(date);
+      if (localData) dispatch(setBillingTopSales(localData));
+    }
   } catch (error) {
     console.error("Error fetching billing top sales:", error);
   } finally {
