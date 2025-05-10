@@ -80,7 +80,7 @@ const Dashboard = () => {
               labels,
               datasets: [
                 {
-                  label: 'Daily sales',
+                  label: 'Venta',
                   backgroundColor: hexToRgba(getStyle('--cui-info'), 10),
                   borderColor: getStyle('--cui-info'),
                   pointHoverBackgroundColor: getStyle('--cui-info'),

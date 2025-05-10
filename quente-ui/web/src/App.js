@@ -27,12 +27,12 @@ const App = () => {
   // Initialize the database and sync service when the app loads
   useEffect(() => {
     // Import services dynamically to avoid issues with SSR
-    import('./services/DatabaseService').then((db) => {
+    import('@quente/common/shared/services/DatabaseService').then((db) => {
       // Initialize database
       console.log('Database initialized')
 
       // Start sync service
-      import('./services/SyncService').then((syncService) => {
+      import('@quente/common/shared/services/SyncService').then((syncService) => {
         syncService.default.schedulePeriodicSync(30) // Sync every 5 minutes
         console.log('Sync service initialized')
       })

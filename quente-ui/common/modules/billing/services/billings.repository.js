@@ -1,4 +1,4 @@
-import indexDBService from "../../../shared/services/indexDB.service";
+import db from "../../../shared/services/DatabaseService";
 import dayjs from "dayjs";
 
 const TIME_ZONE = -5;
@@ -6,16 +6,16 @@ const TIME_ZONE = -5;
 class BillingRepository {
   #collectionName = "billings";
 
-  constructor(indexDBService) {
-    this.indexDBService = indexDBService;
+  constructor(db) {
+    this.db = db;
   }
 
   async save(billing) {
-    await this.indexDBService.save(this.#collectionName, billing);
+    await this.db.save(this.#collectionName, billing);
   }
 
   async find({ page = 1, size = 10 }) {
-    return this.indexDBService.find(this.#collectionName, { page, size });
+    return this.db.find(this.#collectionName, { page, size });
   }
 
   /**
@@ -26,7 +26,7 @@ class BillingRepository {
    */
   async findGreaterThanDate(date) {
     const startDate = dayjs(date).startOf("day").utcOffset(TIME_ZONE).valueOf();
-    const billings = await this.indexDBService
+    const billings = await this.db
       .getCollection(this.#collectionName)
       .toArray();
     const filteredBillings = billings.filter((billing) => {
@@ -62,7 +62,7 @@ class BillingRepository {
   async findTopSalesItems(date) {
     const startDate = dayjs(date).startOf("day").utcOffset(TIME_ZONE).valueOf();
 
-    const billings = await this.indexDBService
+    const billings = await this.db
       .getCollection(this.#collectionName)
       .toArray();
 
@@ -90,9 +90,9 @@ class BillingRepository {
   }
 
   async deleteById(id) {
-    return this.indexDBService.delete(this.#collectionName, id);
+    return this.db.delete(this.#collectionName, id);
   }
 }
 
-const billingsRepository = new BillingRepository(indexDBService);
+const billingsRepository = new BillingRepository(db);
 export default billingsRepository;

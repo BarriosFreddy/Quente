@@ -1,32 +1,32 @@
-import indexDBService from "../../../shared/services/indexDB.service";
+import db from "../../../shared/services/DatabaseService";
 
 class ItemsRepository {
   #collectionName = "items";
 
-  constructor(indexDBService) {
-    this.indexDBService = indexDBService;
+  constructor(db) {
+    this.db = db;
   }
   async save(item) {
-    return await this.indexDBService.save(this.#collectionName, item);
+    return await this.db.save(this.#collectionName, item);
   }
   async update(id, item) {
-    return await this.indexDBService.update(this.#collectionName, id, item);
+    return await this.db.update(this.#collectionName, id, item);
   }
   async saveBulk(items) {
-    return await this.indexDBService.bulk(this.#collectionName, items);
+    return await this.db.saveBulk(this.#collectionName, items);
   }
   async find({ page = 1, size = 10 }) {
-    return this.indexDBService.find(this.#collectionName, { page, size });
+    return this.db.find(this.#collectionName, { page, size });
   }
   async existsByCode(code) {
-    return this.indexDBService
+    return this.db
       .getCollection(this.#collectionName)
       .where("code")
       .equals(code)
       .first();
   }
   async findByNameOrCode({ name, code, page = 1, size = 10 }) {
-    return await this.indexDBService
+    return await this.db
       .getCollection(this.#collectionName)
       .where("name")
       .startsWithIgnoreCase(name || "")
@@ -38,9 +38,9 @@ class ItemsRepository {
   }
 
   async deleteById(id) {
-    return this.indexDBService.delete(this.#collectionName, id);
+    return this.db.delete(this.#collectionName, id);
   }
 }
 
-const itemsRepository = new ItemsRepository(indexDBService);
+const itemsRepository = new ItemsRepository(db);
 export default itemsRepository;

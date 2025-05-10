@@ -160,7 +160,7 @@ function BillingsHistorical() {
                           ))}
                       </div>
                       <div className="d-none d-lg-block">
-                        <CTable small hover>
+                        <CTable hover>
                           <CTableHead>
                             <CTableRow>
                               <CTableHeaderCell>Fecha</CTableHeaderCell>

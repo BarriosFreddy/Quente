@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import syncService from '../../services/SyncService'
-import networkService from '../../services/NetworkService'
+import syncService from '@quente/common/shared/services/SyncService'
+import networkService from '@quente/common/shared/services/NetworkService'
 import './SyncStatus.scss'
 
 const SyncStatus = () => {

@@ -1,7 +1,7 @@
 import db from './DatabaseService'
 import networkService from './NetworkService'
-import { ApiService } from '../ApiService'
-import { resolveConflicts } from '../utils/conflictResolution'
+import { ApiService } from '../../../web/src/ApiService'
+import { resolveConflicts } from '../../utils/conflictResolution'
 
 class SyncService {
   constructor() {
@@ -98,16 +98,16 @@ class SyncService {
       for (const item of queue) {
         try {
           let response
-
+          const { _id: entityId, ...data } = item.data
           switch (item.operation) {
             case 'create':
-              response = await ApiService.post(`/${item.entity}`, item.data)
+              response = await ApiService.post(`/${item.entity}`, data)
               break
             case 'update':
-              response = await ApiService.put(`/${item.entity}/${item.data._id}`, item.data)
+              response = await ApiService.put(`/${item.entity}/${entityId}`, data)
               break
             case 'delete':
-              response = await ApiService.delete(`/${item.entity}/${item.data._id}`)
+              response = await ApiService.delete(`/${item.entity}/${entityId}`)
               break
             default:
               break
@@ -169,6 +169,7 @@ class SyncService {
 
         // Resolve conflicts
         const resolvedItems = resolveConflicts(pendingItems, serverChanges.items, conflictStrategy)
+        console.log('Resolved items:', resolvedItems)
 
         // Store conflicts for reporting
         conflicts.items = resolvedItems.conflicts

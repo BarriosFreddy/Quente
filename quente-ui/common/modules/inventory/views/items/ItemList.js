@@ -112,7 +112,7 @@ const ItemList = ({
         </CRow>
       </div>
       <div className="d-none d-lg-block">
-        <CTable small hover>
+        <CTable hover>
           <CTableHead>
             <CTableRow>
               <CTableHeaderCell scope="col">Nombre</CTableHeaderCell>

@@ -26,7 +26,7 @@ class PricesRatio {
 
 export class Item {
   constructor(
-    public id: Types.ObjectId,
+    public _id: Types.ObjectId,
     public code: string,
     public name: string,
     public description: string,
@@ -64,7 +64,7 @@ export class Item {
   }
 
   public static of({
-    id,
+    _id,
     code,
     name,
     description,
@@ -79,7 +79,7 @@ export class Item {
     updatedAt,
   }: any): Item {
     return new Item(
-      id,
+      _id,
       code,
       name,
       description,

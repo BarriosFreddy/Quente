@@ -48,7 +48,7 @@ const AppSidebar = () => {
         </CSidebarNav>
         <CSidebarFooter onClick={handleLogout} style={{ cursor: "pointer" }}>
           <CIcon icon={cilLockLocked} className="me-2" />
-          Logout
+          Cerrar Sesión
         </CSidebarFooter>
         <CSidebarFooter>
           Build

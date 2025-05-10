@@ -9,18 +9,13 @@ import {
   setBillingTopSales,
 } from "../reducers/billings.reducer";
 import isOnline from "is-online";
+import db from "../../../shared/services/DatabaseService";
 
 export const saveBilling = (billing) => async (dispatch, getState, api) => {
-  dispatch(setSaving(true));
   try {
-    const isonline = await isOnline();
-    if (isonline) {
-      const { status } = await api.post(`/billings`, billing);
-      dispatch(setSaveSuccess(status === 201));
-    }
-    await billingsRepository.save(billing);
-    if (!isonline) dispatch(setSaveSuccess(true));
-    dispatch(getBillings({ page: 1 }));
+    dispatch(setSaving(true));
+    const savedBilling = await db.saveBilling(billing, api)
+    dispatch(setSaveSuccess(!!savedBilling));
   } catch (error) {
     console.error("Error saving billing:", error);
     dispatch(setSaveSuccess(false));
