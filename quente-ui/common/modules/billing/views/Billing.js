@@ -299,7 +299,7 @@ function Billing() {
         <CRow>
           {(!isSmallScreen || (isSmallScreen && showItemsSmScreens)) && (
             <CCol lg="6" style={{ padding: 0, margin: 0 }}>
-              <CCard style={{ height: "74vh" }}>
+              <CCard style={{ height: "calc(100vh - 200px)" }}>
                 <CCardBody style={{ overflowY: "auto", fontSize: 14 }}>
                   <ClientSearchComponent ref={clientSearchComponentRef} />
                   {isSmallScreen && showItemsSmScreens && (
@@ -432,7 +432,7 @@ function Billing() {
           )}
           {(!isSmallScreen || (isSmallScreen && !showItemsSmScreens)) && (
             <CCol lg="6" style={{ padding: 0, margin: 0 }}>
-              <CCard style={{ height: "74vh", overflowY: "auto" }}>
+              <CCard style={{ height: "calc(100vh - 200px)", overflowY: "auto" }}>
                 <CCardBody>
                   {!paying && (
                     <BillingForm
@@ -459,7 +459,7 @@ function Billing() {
           <CCard>
             <CCardBody>
               <CRow className="mt-3">
-                <CCol lg="6" className="fs-1">
+                <CCol lg="6" className="fs-2 fw-semibold">
                   <span>POR COBRAR</span>&nbsp;
                   {formatCurrency(total)}
                 </CCol>
