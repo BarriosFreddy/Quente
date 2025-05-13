@@ -4,4 +4,6 @@ export default interface ItemQueryI extends QueryI {
   name?: string;
   code?: string;
   stock?: string;
+  page?: number;
+  size?: number;
 }

@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
 import {
   CButton,
@@ -7,7 +7,10 @@ import {
   CCard,
   CCardBody,
   CCardFooter,
+  CCardHeader,
   CCol,
+  CProgress,
+  CProgressBar,
   CRow,
   CTable,
   CTableBody,
@@ -15,43 +18,79 @@ import {
   CTableHead,
   CTableHeaderCell,
   CTableRow,
-} from '@coreui/react'
-import { CChartBar, CChartLine } from '@coreui/react-chartjs'
-import { getStyle, hexToRgba } from '@coreui/utils'
-import CIcon from '@coreui/icons-react'
-import { cilCloudDownload } from '@coreui/icons'
-import dayjs from 'dayjs'
-import { getBillingsGTDate, getBillingTopSales } from '../../services/billings.service'
-import { formatCurrency } from '@quente/common/utils'
-import { Helmet } from 'react-helmet'
+  CWidgetStatsB,
+  CWidgetStatsC,
+  CWidgetStatsF,
+} from "@coreui/react";
+import { CChartBar, CChartDoughnut, CChartLine } from "@coreui/react-chartjs";
+import { getStyle, hexToRgba } from "@coreui/utils";
+import CIcon from "@coreui/icons-react";
+import {
+  cilCart,
+  cilCash,
+  cilChartPie,
+  cilCloudDownload,
+  cilWarning,
+  cilBasket,
+  cilStorage,
+} from "@coreui/icons";
+import dayjs from "dayjs";
+import {
+  getBillingsGTDate,
+  getBillingTopSales,
+} from "../../services/billings.service";
+import { getDashboardStats } from "../../services/dashboard.service";
+import { formatCurrency } from "@quente/common/utils";
+import { Helmet } from "react-helmet";
 
 const SALES_DAYS = [
-  { label: 'Hoy', value: 0 },
-  { label: 'Últimos 7 días', value: 6 },
-]
+  { label: "Hoy", value: 0 },
+  { label: "Últimos 7 días", value: 6 },
+  { label: "Últimos 30 días", value: 29 },
+];
 
 const Dashboard = () => {
-  const dispatch = useDispatch()
-  const billingsGraph = useSelector((state) => state.billing.billingsGraph)
-  const billingTopSales = useSelector((state) => state.billing.billingTopSales)
-  const [days, setDays] = useState(0)
-  const tenDaysBefore = dayjs().subtract(days, 'days').format('YYYY-MM-DD')
+  const dispatch = useDispatch();
+  const billingsGraph = useSelector((state) => state.billing.billingsGraph);
+  const billingTopSales = useSelector((state) => state.billing.billingTopSales);
+  const dashboardStats = useSelector((state) => state.dashboard.stats);
+  const dashboardLoading = useSelector((state) => state.dashboard.loading);
+  const [days, setDays] = useState(0);
+  const tenDaysBefore = dayjs().subtract(days, "days").format("YYYY-MM-DD");
+
   useEffect(() => {
-    dispatch(getBillingsGTDate(tenDaysBefore))
-    dispatch(getBillingTopSales(tenDaysBefore))
-  }, [dispatch, tenDaysBefore])
-  const labels = billingsGraph ? billingsGraph.map(({ createdAt }) => createdAt) : []
-  const data = billingsGraph ? billingsGraph.map(({ billAmount }) => billAmount) : []
-  const topSalesLabels = billingTopSales ? billingTopSales.map(({ name }) => name) : []
-  const topSalesData = billingTopSales ? billingTopSales.map(({ sales }) => sales) : []
-  const dataReversed = [...billingsGraph].reverse()
+    dispatch(getBillingsGTDate(tenDaysBefore));
+    dispatch(getBillingTopSales(tenDaysBefore));
+    dispatch(getDashboardStats(tenDaysBefore));
+  }, [dispatch, tenDaysBefore]);
+
+  const labels = billingsGraph
+    ? billingsGraph.map(({ createdAt }) => createdAt)
+    : [];
+  const data = billingsGraph
+    ? billingsGraph.map(({ billAmount }) => billAmount)
+    : [];
+  const topSalesLabels = billingTopSales
+    ? billingTopSales.map(({ name }) => name)
+    : [];
+  const topSalesData = billingTopSales
+    ? billingTopSales.map(({ sales }) => sales)
+    : [];
+  const dataReversed = [...billingsGraph].reverse();
+
+  // Extract stock by category data for the doughnut chart
+  const categoryLabels =
+    dashboardStats?.stockByCategory?.map((cat) => cat.name) || [];
+  const categoryData =
+    dashboardStats?.stockByCategory?.map((cat) => cat.stock) || [];
   return (
     <>
+      <Helmet>
+        <title>TABLERO</title>
+      </Helmet>
+
       <CCard className="mb-4">
-        <Helmet>
-          <title>DASHBOARD</title>
-        </Helmet>
-        <CCardBody style={{ width: '90%', margin: 'auto' }}>
+        <CCardHeader>
           <CRow>
             <CCol sm={5}>
               <h4 id="traffic" className="card-title mb-0">
@@ -74,16 +113,81 @@ const Dashboard = () => {
               </CButtonGroup>
             </CCol>
           </CRow>
+        </CCardHeader>
+        <CCardBody style={{ width: "90%", margin: "auto" }}>
+          {/* Summary Stats Widgets */}
+          <CRow className="mb-4">
+            <CCol sm={6} lg={3}>
+              <CWidgetStatsC
+                className="mb-3"
+                icon={<CIcon icon={cilCart} height={36} />}
+                color="primary"
+                title="Artículos Totales"
+                value={dashboardStats.totalItems.toLocaleString()}
+                progress={{
+                  value: Math.min(
+                    100,
+                    Math.round((dashboardStats.totalItems / 1000) * 100)
+                  ),
+                }}
+              />
+            </CCol>
+            <CCol sm={6} lg={3}>
+              <CWidgetStatsC
+                className="mb-3"
+                icon={<CIcon icon={cilStorage} height={36} />}
+                color="info"
+                title="Inventario Actual"
+                value={dashboardStats.currentStock.toLocaleString()}
+                progress={{
+                  value: Math.min(
+                    100,
+                    Math.round((dashboardStats.currentStock / 5000) * 100)
+                  ),
+                }}
+              />
+            </CCol>
+            <CCol sm={6} lg={3}>
+              <CWidgetStatsC
+                className="mb-3"
+                icon={<CIcon icon={cilCash} height={36} />}
+                color="success"
+                title="Ingresos Totales"
+                value={formatCurrency(dashboardStats.totalRevenue)}
+                progress={{
+                  value: Math.min(
+                    100,
+                    Math.round((dashboardStats.totalRevenue / 50000) * 100)
+                  ),
+                }}
+              />
+            </CCol>
+            <CCol sm={6} lg={3}>
+              <CWidgetStatsC
+                className="mb-3"
+                icon={<CIcon icon={cilBasket} height={36} />}
+                color="warning"
+                title="Número de Facturaciones"
+                value={dashboardStats.numberOfBillings.toLocaleString()}
+                progress={{
+                  value: Math.min(
+                    100,
+                    Math.round((dashboardStats.numberOfBillings / 100) * 100)
+                  ),
+                }}
+              />
+            </CCol>
+          </CRow>
           <CChartLine
-            style={{ height: '300px', marginTop: '40px' }}
+            style={{ height: "300px", marginTop: "40px" }}
             data={{
               labels,
               datasets: [
                 {
-                  label: 'Venta',
-                  backgroundColor: hexToRgba(getStyle('--cui-info'), 10),
-                  borderColor: getStyle('--cui-info'),
-                  pointHoverBackgroundColor: getStyle('--cui-info'),
+                  label: "Venta",
+                  backgroundColor: hexToRgba(getStyle("--cui-info"), 10),
+                  borderColor: getStyle("--cui-info"),
+                  pointHoverBackgroundColor: getStyle("--cui-info"),
                   borderWidth: 2,
                   data,
                   fill: true,
@@ -126,17 +230,157 @@ const Dashboard = () => {
             }}
           />
           <br />
+          {/* Stock by Category Chart */}
+          <CRow className="mb-4">
+            <CCol md={6}>
+              <CCard className="mb-4">
+                <CCardHeader>
+                  <h4>Estado del Inventario por Categoría</h4>
+                </CCardHeader>
+                <CCardBody>
+                  <CChartDoughnut
+                    data={{
+                      labels: categoryLabels,
+                      datasets: [
+                        {
+                          backgroundColor: [
+                            "#3399FF",
+                            "#41B883",
+                            "#E46651",
+                            "#DD1B16",
+                            "#6610F2",
+                            "#20C997",
+                            "#FD7E14",
+                            "#FFC107",
+                          ],
+                          data: categoryData,
+                        },
+                      ],
+                    }}
+                  />
+                  <div className="mt-4">
+                    {dashboardStats?.stockByCategory?.map((category, index) => (
+                      <div key={index} className="mb-2">
+                        <div className="d-flex justify-content-between">
+                          <div>{category.name}</div>
+                          <div>
+                            <strong>{category.stock.toLocaleString()}</strong>{" "}
+                            unidades ({category.itemCount} artículos)
+                          </div>
+                        </div>
+                        <CProgress className="progress-xs">
+                          <CProgressBar
+                            color={
+                              index % 8 === 0
+                                ? "primary"
+                                : index % 8 === 1
+                                ? "success"
+                                : index % 8 === 2
+                                ? "danger"
+                                : index % 8 === 3
+                                ? "warning"
+                                : index % 8 === 4
+                                ? "info"
+                                : index % 8 === 5
+                                ? "dark"
+                                : index % 8 === 6
+                                ? "secondary"
+                                : "light"
+                            }
+                            value={Math.min(
+                              100,
+                              Math.round(
+                                (category.stock /
+                                  (dashboardStats.currentStock || 1)) *
+                                  100
+                              )
+                            )}
+                          />
+                        </CProgress>
+                      </div>
+                    ))}
+                  </div>
+                </CCardBody>
+              </CCard>
+            </CCol>
+
+            {/* Low Stock Items Widget */}
+            <CCol md={6}>
+              <CCard className="mb-4">
+                <CCardHeader>
+                  <h4>
+                    <CIcon icon={cilWarning} className="text-warning" /> Artículos con
+                    Poco Inventario
+                  </h4>
+                </CCardHeader>
+                <CCardBody>
+                  <CTable hover responsive small>
+                    <CTableHead>
+                      <CTableRow>
+                        <CTableHeaderCell>Código</CTableHeaderCell>
+                        <CTableHeaderCell>Nombre</CTableHeaderCell>
+                        <CTableHeaderCell>Inventario Actual</CTableHeaderCell>
+                        <CTableHeaderCell>Punto de Reorden</CTableHeaderCell>
+                        <CTableHeaderCell>Estado</CTableHeaderCell>
+                      </CTableRow>
+                    </CTableHead>
+                    <CTableBody>
+                      {dashboardStats?.lowStockItems?.map((item, index) => (
+                        <CTableRow key={index}>
+                          <CTableDataCell>
+                            <strong>{item.code}</strong>
+                          </CTableDataCell>
+                          <CTableDataCell>{item.name}</CTableDataCell>
+                          <CTableDataCell className="text-center">
+                            {item.currentStock}
+                          </CTableDataCell>
+                          <CTableDataCell className="text-center">
+                            {item.reorderPoint}
+                          </CTableDataCell>
+                          <CTableDataCell>
+                            <CProgress height={10}>
+                              <CProgressBar
+                                color={
+                                  item.currentStock === 0
+                                    ? "danger"
+                                    : item.currentStock < item.reorderPoint / 2
+                                    ? "warning"
+                                    : "info"
+                                }
+                                value={Math.min(
+                                  100,
+                                  Math.round(
+                                    (item.currentStock /
+                                      (item.reorderPoint || 1)) *
+                                      100
+                                  )
+                                )}
+                              />
+                            </CProgress>
+                          </CTableDataCell>
+                        </CTableRow>
+                      ))}
+                    </CTableBody>
+                  </CTable>
+                </CCardBody>
+              </CCard>
+            </CCol>
+          </CRow>
           <CTable align="middle" className="mb-0 border" hover responsive>
             <CTableHead color="light">
               <CTableRow>
                 <CTableHeaderCell className="text-center">Día</CTableHeaderCell>
-                <CTableHeaderCell className="text-center">Ventas</CTableHeaderCell>
+                <CTableHeaderCell className="text-center">
+                  Ventas
+                </CTableHeaderCell>
               </CTableRow>
             </CTableHead>
             <CTableBody>
               {dataReversed.map(({ createdAt, billAmount }, index) => (
                 <CTableRow key={index}>
-                  <CTableDataCell className="text-center">{createdAt}</CTableDataCell>
+                  <CTableDataCell className="text-center">
+                    {createdAt}
+                  </CTableDataCell>
                   <CTableDataCell className="text-center">
                     {formatCurrency(billAmount)}
                   </CTableDataCell>
@@ -152,8 +396,8 @@ const Dashboard = () => {
               labels: topSalesLabels,
               datasets: [
                 {
-                  label: 'Venta',
-                  backgroundColor: '#0000aa',
+                  label: "Venta",
+                  backgroundColor: "#0000aa",
                   maxBarThickness: 20,
                   data: topSalesData,
                 },
@@ -161,29 +405,29 @@ const Dashboard = () => {
             }}
             labels="items"
             options={{
-              indexAxis: 'y',
+              indexAxis: "y",
               plugins: {
                 legend: {
                   labels: {
-                    color: getStyle('--cui-body-color'),
+                    color: getStyle("--cui-body-color"),
                   },
                 },
               },
               scales: {
                 x: {
                   grid: {
-                    color: getStyle('--cui-border-color-translucent'),
+                    color: getStyle("--cui-border-color-translucent"),
                   },
                   ticks: {
-                    color: getStyle('--cui-body-color'),
+                    color: getStyle("--cui-body-color"),
                   },
                 },
                 y: {
                   grid: {
-                    color: getStyle('--cui-border-color-translucent'),
+                    color: getStyle("--cui-border-color-translucent"),
                   },
                   ticks: {
-                    color: getStyle('--cui-body-color'),
+                    color: getStyle("--cui-body-color"),
                   },
                 },
               },
@@ -193,7 +437,7 @@ const Dashboard = () => {
         <CCardFooter></CCardFooter>
       </CCard>
     </>
-  )
-}
+  );
+};
 
-export default Dashboard
+export default Dashboard;

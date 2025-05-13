@@ -1,6 +1,6 @@
 import { container } from 'tsyringe';
 import { MongoDBService } from '../db/mongodb.service';
-import { Schema } from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 
 export abstract class BaseService<T> {
   protected tenantId = '';
@@ -11,7 +11,7 @@ export abstract class BaseService<T> {
   abstract update(id: string, role: T): Promise<T | null>;
 
   abstract getModelName(): string;
-  abstract getSchema(): Schema;
+  abstract getSchema(): Schema | undefined;
   abstract getCollectionName(): string | undefined;
 
   set setTenantId(tenantId: string) {
@@ -19,6 +19,7 @@ export abstract class BaseService<T> {
   }
 
   protected getConnection() {
+    mongoose.set('debug', true);
     return container.resolve(MongoDBService).getConnection(this.tenantId);
   }
 

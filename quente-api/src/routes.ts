@@ -5,6 +5,7 @@ import * as inventoryRouter from './modules/inventory/routes/index';
 import * as clientRouter from './modules/clients/routes/index';
 import healthRouter from './modules/core/routes/health.routes';
 import syncRouter from './modules/core/routes/sync.routes';
+import dashboardRouter from './modules/core/routes/dashboard.routes';
 
 export function registerRoutes(app: Express): void {
   const apiRouter = express.Router();
@@ -29,6 +30,9 @@ export function registerRoutes(app: Express): void {
 
   // Sync endpoint for efficient data synchronization
   apiRouter.use('/sync', syncRouter);
+
+  // Dashboard endpoint for statistics and analytics
+  apiRouter.use('/dashboard', dashboardRouter);
 
   // Billing routes
   apiRouter.use('/billings', billingRouter.billingRouter);

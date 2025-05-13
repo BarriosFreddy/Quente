@@ -19,10 +19,12 @@ export class ItemCategoryService extends BaseService<ItemCategory> {
   }
   async findAll({
     page = 1,
+    size = 10,
     name,
     code,
   }: {
-    page: number;
+    page?: number;
+    size?: number;
     name?: string;
     code?: string;
   }): Promise<ItemCategory[]> {
@@ -32,12 +34,15 @@ export class ItemCategoryService extends BaseService<ItemCategory> {
     code && conditions.push({ code: new RegExp(`${code}`, 'i') });
 
     conditions.length > 0 && (filters = { ['$or']: conditions, ...filters });
+    if (page && size) {
+      filters = {
+        ...filters,
+        $skip: size * (page - 1),
+        $limit: size,
+      };
+    }
 
-    const categories = await this.getModel()
-      .find(filters)
-      .skip(10 * (page - 1))
-      .limit(10)
-      .exec();
+    const categories = await this.getModel().find(filters).exec();
     return categories;
   }
   async save(itemCategory: ItemCategory): Promise<ItemCategory> {

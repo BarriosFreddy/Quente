@@ -49,9 +49,10 @@ export class ItemQueryStrategy implements QueryStrategy {
           expirationControl: 1,
         },
       },
-      { $skip: +size * (+page - 1) },
-      { $limit: +size },
     ];
+    if (page && size) {
+      aggregateFilters.push({ $skip: +size * (+page - 1) }, { $limit: +size });
+    }
 
     return aggregateFilters;
   }

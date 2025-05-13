@@ -3,6 +3,7 @@ import { ApiService } from './ApiService'
 import appReducer from './app.slice'
 import authReducer from '@quente/common/modules/core/reducers/auth.reducer'
 import billingReducer from '@quente/common/modules/billing/reducers/billings.reducer'
+import dashboardReducer from '@quente/common/modules/billing/slices/dashboard.slice'
 import itemsReducer from '@quente/common/modules/inventory/reducers/items.reducer'
 import itemCategoriesReducer from '@quente/common/modules/inventory/reducers/item-categories.reducer'
 import storage from 'redux-persist/lib/storage'
@@ -46,6 +47,7 @@ const store = configureStore({
     app: appReducer,
     auth: persistedAuthReducer,
     billing: persistedBillingReducer,
+    dashboard: dashboardReducer,
     items: persistedItemsReducer,
     itemCategories: itemCategoriesReducer,
     kardexes: kardexesReducer,
