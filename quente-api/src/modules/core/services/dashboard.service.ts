@@ -43,7 +43,7 @@ export class DashboardService extends BaseService<undefined> {
 
       // Calculate total revenue
       const totalRevenue = billings.reduce(
-        (sum, billing) => sum + (billing.billAmount || 0),
+        (sum: number, billing: any) => sum + (billing.billAmount || 0),
         0,
       );
 
@@ -51,10 +51,10 @@ export class DashboardService extends BaseService<undefined> {
       const totalItems = items.length;
 
       // Calculate current stock levels
-      const currentStock = items.reduce((total, item) => {
+      const currentStock = items.reduce((total: number, item: any) => {
         const stock =
           item.expirationControl?.reduce(
-            (sum, control) => sum + (control.lotUnits || 0),
+            (sum: number, control: any) => sum + (control.lotUnits || 0),
             0,
           ) || 0;
         return total + stock;
@@ -85,11 +85,11 @@ export class DashboardService extends BaseService<undefined> {
   /**
    * Get stock levels grouped by category
    */
-  private async getStockByCategory(items, categories) {
+  private async getStockByCategory(items: any[], categories: any[]) {
     const categoryMap = new Map();
 
     // Initialize categories
-    categories.forEach((category) => {
+    categories.forEach((category: any) => {
       categoryMap.set(category._id.toString(), {
         _id: category._id,
         name: category.name,
@@ -99,13 +99,13 @@ export class DashboardService extends BaseService<undefined> {
     });
 
     // Calculate stock by category
-    items.forEach((item) => {
+    items.forEach((item: any) => {
       const categoryId = item.categoryId?.toString();
       if (categoryId && categoryMap.has(categoryId)) {
         const category = categoryMap.get(categoryId);
         const itemStock =
           item.expirationControl?.reduce(
-            (sum, control) => sum + (control.lotUnits || 0),
+            (sum: number, control: any) => sum + (control.lotUnits || 0),
             0,
           ) || 0;
 
@@ -120,12 +120,12 @@ export class DashboardService extends BaseService<undefined> {
   /**
    * Get items that need to be restocked (below reorder point)
    */
-  private getLowStockItems(items) {
+  private getLowStockItems(items: any[]) {
     return items
-      .map((item) => {
+      .map((item: any) => {
         const currentStock =
           item.expirationControl?.reduce(
-            (sum, control) => sum + (control.lotUnits || 0),
+            (sum: number, control: any) => sum + (control.lotUnits || 0),
             0,
           ) || 0;
         const needsRestock = currentStock <= (item.reorderPoint || 0);
@@ -139,8 +139,8 @@ export class DashboardService extends BaseService<undefined> {
           needsRestock,
         };
       })
-      .filter((item) => item.needsRestock)
-      .sort((a, b) => a.currentStock - b.currentStock); // Sort by lowest stock first
+      .filter((item: any) => item.needsRestock)
+      .sort((a: any, b: any) => a.currentStock - b.currentStock); // Sort by lowest stock first
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
