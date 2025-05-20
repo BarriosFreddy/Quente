@@ -46,5 +46,11 @@ organizationRouter.get(
   organizationController.findOne,
 );
 organizationRouter.get('/', isAuthenticated, organizationController.findAll);
+organizationRouter.delete(
+  '/:id',
+  validateParameters(idSchema),
+  isAuthenticated,
+  organizationController.delete,
+);
 
 export default organizationRouter;

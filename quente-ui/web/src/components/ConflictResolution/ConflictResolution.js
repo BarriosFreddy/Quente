@@ -58,7 +58,6 @@ const ConflictResolution = ({ conflicts = [], onResolve, onCancel, show = false 
   // Handle manual resolution of a conflict
   const handleManualResolve = (index, field, value) => {
     const conflict = conflicts[index]
-    const local = { ...conflict.local }
     const server = { ...conflict.server }
 
     // Create a merged version

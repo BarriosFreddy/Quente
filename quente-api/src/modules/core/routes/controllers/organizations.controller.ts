@@ -69,6 +69,18 @@ class OrganizationsController {
       ? res.status(201).send(savedOrganization)
       : res.status(400).send('Something went wrong');
   }
+
+  async delete(req: Request, res: Response) {
+    const { id } = req.params;
+    const result = await setTenantIdToService(res, organizationsService).delete(
+      id,
+    );
+    result
+      ? res.status(200).send({ success: true })
+      : res
+          .status(400)
+          .send({ success: false, message: 'Failed to delete organization' });
+  }
 }
 
 const organizationController = new OrganizationsController();

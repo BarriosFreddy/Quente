@@ -1,10 +1,12 @@
 import { BaseService } from '../../../helpers/abstracts/base.service';
 import { Organization } from '../entities/Organization';
-import { autoInjectable, singleton } from 'tsyringe';
+import { autoInjectable, singleton, container } from 'tsyringe';
 import { organizationSchema } from '../db/schemas/organization.schema';
 import { OrganizationStatus } from '../entities/enums/organization-status';
 import { OrganizationDeployService } from './organization-deploy.service';
 import { nextTick } from 'process';
+import mongoose from 'mongoose';
+import { MongoDBService } from '../../../helpers/db/mongodb.service';
 
 @singleton()
 @autoInjectable()
@@ -15,7 +17,13 @@ export class OrganizationService extends BaseService<Organization> {
 
   getModelName = () => 'Organization';
   getSchema = () => organizationSchema;
-  getCollectionName = () => undefined;
+  getCollectionName = () => 'organizations';
+
+  // Override getConnection to use quente_admin database specifically for organizations
+  protected getConnection() {
+    mongoose.set('debug', true);
+    return container.resolve(MongoDBService).getConnection('quente_admin');
+  }
 
   async findOne(id: string): Promise<Organization | null> {
     return await this.getModel().findById(id).exec();
@@ -48,6 +56,16 @@ export class OrganizationService extends BaseService<Organization> {
     } catch (error) {
       console.log(error);
       return Promise.reject(null);
+    }
+  }
+
+  async delete(id: string): Promise<boolean> {
+    try {
+      const result = await this.getModel().deleteOne({ _id: id });
+      return result.deletedCount > 0;
+    } catch (error) {
+      console.log(error);
+      return Promise.reject(false);
     }
   }
 }

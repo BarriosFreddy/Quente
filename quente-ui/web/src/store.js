@@ -12,6 +12,7 @@ import kardexesReducer from '@quente/common/modules/inventory/reducers/kardexes.
 import purchaseOrdersReducer from '@quente/common/modules/inventory/reducers/purchase-orders.reducer'
 import invEnumerationsReducer from '@quente/common/modules/inventory/reducers/inv-enumerations.reducer'
 import clientsReducer from '@quente/common/modules/client/reducers/clients.reducer'
+import organizationsReducer from './organizationSlice'
 
 const persistedBillingReducer = persistReducer(
   {
@@ -41,6 +42,23 @@ const persistedAuthReducer = persistReducer(
 // To use with combineReducers for several reducers
 // const persistedReducer = persistReducer(persistConfig, rootReducer)
 
+// Organization service class implementation
+class OrganizationService {
+  constructor(apiService) {
+    this.apiService = apiService
+  }
+
+  // Implementation for organization service methods
+  // These methods are now handled directly in the organizationSlice.js
+}
+
+// Initialize services
+const createServices = () => {
+  return {
+    organizationService: new OrganizationService(ApiService),
+  }
+}
+
 const store = configureStore({
   //devTools: process.env.NODE_ENV !== 'production',
   reducer: {
@@ -54,11 +72,15 @@ const store = configureStore({
     purchaseOrders: purchaseOrdersReducer,
     invEnumerations: invEnumerationsReducer,
     clients: clientsReducer,
+    organizations: organizationsReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       thunk: {
-        extraArgument: ApiService,
+        extraArgument: {
+          ...ApiService,
+          ...createServices(),
+        },
       },
     }),
 })

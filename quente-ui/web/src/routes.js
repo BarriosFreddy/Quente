@@ -24,6 +24,11 @@ const PurchaseOrder = lazy(() =>
   import('@quente/common/modules/inventory/views/purchase-order/PurchaseOrder'),
 )
 
+// Admin module components
+const AdminModule = lazy(() => import('./views/admin/AdminModule'))
+const OrganizationList = lazy(() => import('./views/admin/OrganizationList'))
+const OrganizationForm = lazy(() => import('./views/admin/OrganizationForm'))
+
 const routes = [
   { path: '/', exact: true, name: 'Home' },
   { path: '/home', name: 'Home', element: Home },
@@ -37,6 +42,16 @@ const routes = [
   { path: '/inventory-kardex', name: 'Kardex', element: Kardex },
   { path: '/inventory-purchase-orders', name: 'Purchase order', element: PurchaseOrder },
   { path: '/clients', name: 'Clients', element: Clients },
+
+  // Admin module routes
+  { path: '/admin/*', name: 'Administración', element: AdminModule },
+  { path: '/admin/organizaciones', name: 'Organizaciones', element: OrganizationList },
+  { path: '/admin/organizaciones/nueva', name: 'Nueva Organización', element: OrganizationForm },
+  {
+    path: '/admin/organizaciones/editar/:id',
+    name: 'Editar Organización',
+    element: OrganizationForm,
+  },
 ]
 
 export default routes
