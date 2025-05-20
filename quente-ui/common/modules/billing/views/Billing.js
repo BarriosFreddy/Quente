@@ -43,7 +43,6 @@ import CONSTANTS from "../../../constants";
 import ClientSearchComponent from "./../../../shared/components/client-search-component/ClientSearchComponent";
 import CurrencyFormInput from "@quente/common/shared/components/CurrencyFormInput";
 import { getAllItems } from "./../../inventory/services/items.service";
-import BillingTemplate from "./print-templates/BillingTemplate";
 const { REACT_APP_HELADERIA_BARCODE, REACT_APP_VARIEDAD_BARCODE } = process.env;
 const itemsPricesInitialState = {
   [REACT_APP_HELADERIA_BARCODE]: "",
@@ -59,6 +58,7 @@ function Billing() {
   const dispatch = useDispatch();
   const saveSuccess = useSelector((state) => state.billing.saveSuccess);
   const saving = useSelector((state) => state.billing.saving);
+  const currentUser = useSelector((state) => state.auth.infoUser);
   let [billingData, setBillingData] = useState(null);
   let [items, setItems] = useState([]);
   let [receivedAmount, setReceivedAmount] = useState(0);
@@ -233,7 +233,7 @@ function Billing() {
   const handleCharge = (e) => {
     e && e.stopPropagation();
     setPaying(true);
-    isSmallScreen && setShowItemsSmScreens(false)
+    isSmallScreen && setShowItemsSmScreens(false);
   };
 
   const handleSave = async () => {
@@ -254,13 +254,27 @@ function Billing() {
       });
       return;
     }
+    const selectedClient = clientSearchComponentRef.current?.getSelected();
+
     const billingData = {
       createdAt: getDateObject(),
       receivedAmount,
       billAmount: total,
       items: getItemsData(),
       creationDate: getDateAsString(),
-      clientId: clientSearchComponentRef.current?.getSelected()?._id,
+      clientId: selectedClient?._id,
+      client: {
+        id: selectedClient?._id,
+        name: selectedClient?.name,
+      },
+      seller: {
+        id: currentUser?.id,
+        name: currentUser?.name,
+      },
+      createdBy: {
+        id: currentUser?.id,
+        name: currentUser?.name,
+      },
     };
     setBillingData(billingData);
     !!REACT_APP_UI && (await window.electronAPI.setData(billingData));
@@ -432,7 +446,9 @@ function Billing() {
           )}
           {(!isSmallScreen || (isSmallScreen && !showItemsSmScreens)) && (
             <CCol lg="6" style={{ padding: 0, margin: 0 }}>
-              <CCard style={{ height: "calc(100vh - 200px)", overflowY: "auto" }}>
+              <CCard
+                style={{ height: "calc(100vh - 200px)", overflowY: "auto" }}
+              >
                 <CCardBody>
                   {!paying && (
                     <BillingForm

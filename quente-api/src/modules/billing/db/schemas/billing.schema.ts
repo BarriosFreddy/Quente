@@ -30,6 +30,10 @@ export const billingSchema = new Schema({
     id: Types.ObjectId,
     name: String,
   },
+  seller: {
+    id: Types.ObjectId,
+    name: String,
+  },
   createdAt: {
     date: Number,
     offset: Number,

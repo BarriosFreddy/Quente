@@ -62,6 +62,7 @@ export class BillingService extends BaseService<Billing> {
   async save(billing: Billing): Promise<Billing> {
     try {
       billing.code = await generateSequencedCode();
+      console.log({ billing });
       const saved = await this.getModel().create(billing);
       setImmediate(async () => await this.saveItemsMovements(saved));
       return saved;

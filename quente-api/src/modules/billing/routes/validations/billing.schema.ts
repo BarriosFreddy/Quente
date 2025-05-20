@@ -23,6 +23,10 @@ const BillingCreateSchema: Schema = joi.object({
     id: joi.string(),
     name: joi.string(),
   }),
+  seller: joi.object({
+    id: joi.string(),
+    name: joi.string(),
+  }),
   createdBy: joi.object({
     id: joi.string(),
     name: joi.string(),

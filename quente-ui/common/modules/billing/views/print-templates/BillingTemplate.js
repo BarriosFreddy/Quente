@@ -16,8 +16,8 @@ const BillingTemplate = ({ billing, organization }) => (
       <View style={styles.info}>
         <Text>CÓDIGO: {billing.code}</Text>
         <Text>FECHA: {billing.creationDate}</Text>
-        <Text>VENDEDOR: ANÓNIMO</Text>
-        <Text>CLIENTE: ANÓNIMO</Text>
+        <Text>VENDEDOR: {billing.seller?.name || 'ANÓNIMO'}</Text>
+        <Text>CLIENTE: {billing.client?.name || 'ANÓNIMO'}</Text>
       </View>
       <View style={styles.tableRow}>
         <Text style={{ ...styles.tableCol, width: "50%" }}>PRODUCTO</Text>
@@ -53,7 +53,7 @@ const BillingTemplate = ({ billing, organization }) => (
         </View>
       </View>
       <View style={{ ...styles.textCenter, ...styles.marginBottom10 }}>
-        <Text>SERVICIO A DOMICILIO</Text>
+        <Text>SERVICIO AL CLIENTE</Text>
         <Text>{organization?.phoneNumber?.toUpperCase()}</Text>
         <Text>** GRACIAS POR SU COMPRA **</Text>
       </View>
