@@ -13,6 +13,7 @@ import purchaseOrdersReducer from '@quente/common/modules/inventory/reducers/pur
 import invEnumerationsReducer from '@quente/common/modules/inventory/reducers/inv-enumerations.reducer'
 import clientsReducer from '@quente/common/modules/client/reducers/clients.reducer'
 import organizationsReducer from './organizationSlice'
+import userAccountsReducer from './userAccountSlice'
 
 const persistedBillingReducer = persistReducer(
   {
@@ -73,6 +74,7 @@ const store = configureStore({
     invEnumerations: invEnumerationsReducer,
     clients: clientsReducer,
     organizations: organizationsReducer,
+    userAccounts: userAccountsReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

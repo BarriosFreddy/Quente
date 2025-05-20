@@ -12,10 +12,13 @@ export class UserAccountService extends BaseService<UserAccount> {
   getCollectionName = () => 'user-accounts';
 
   async findOne(id: string) {
-    return await this.getModel().findById(id).exec();
+    return await this.getModel().findById(id).select('-password').exec();
   }
   async findAll() {
-    const userAccounts = await this.getModel().find().exec();
+    const userAccounts = await this.getModel()
+      .find()
+      .select('-password')
+      .exec();
     return userAccounts;
   }
 
@@ -54,6 +57,24 @@ export class UserAccountService extends BaseService<UserAccount> {
       return await this.getModel().findOne({ email });
     } catch (error) {
       return Promise.reject(null);
+    }
+  }
+
+  async resetPassword(id: string, password: string): Promise<boolean> {
+    try {
+      if (!password) return Promise.reject(false);
+      const salt = await bcrypt.genSalt(ROUNDS_NUMBER);
+      const hashedPassword = await bcrypt.hash(password, salt);
+
+      const { modifiedCount } = await this.getModel().updateOne(
+        { _id: id },
+        { password: hashedPassword, updatedAt: new Date() },
+      );
+
+      return !!modifiedCount;
+    } catch (error) {
+      console.log(error);
+      return Promise.reject(false);
     }
   }
 }

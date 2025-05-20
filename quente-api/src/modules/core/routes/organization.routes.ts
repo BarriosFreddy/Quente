@@ -53,4 +53,12 @@ organizationRouter.delete(
   organizationController.delete,
 );
 
+// Deploy organization endpoint for organizations in CREATING status
+organizationRouter.post(
+  '/:id/deploy',
+  validateParameters(idSchema),
+  isAuthenticated,
+  organizationController.deploy,
+);
+
 export default organizationRouter;

@@ -26,8 +26,6 @@ const PurchaseOrder = lazy(() =>
 
 // Admin module components
 const AdminModule = lazy(() => import('./views/admin/AdminModule'))
-const OrganizationList = lazy(() => import('./views/admin/OrganizationList'))
-const OrganizationForm = lazy(() => import('./views/admin/OrganizationForm'))
 
 const routes = [
   { path: '/', exact: true, name: 'Home' },
@@ -45,13 +43,6 @@ const routes = [
 
   // Admin module routes
   { path: '/admin/*', name: 'Administración', element: AdminModule },
-  { path: '/admin/organizaciones', name: 'Organizaciones', element: OrganizationList },
-  { path: '/admin/organizaciones/nueva', name: 'Nueva Organización', element: OrganizationForm },
-  {
-    path: '/admin/organizaciones/editar/:id',
-    name: 'Editar Organización',
-    element: OrganizationForm,
-  },
 ]
 
 export default routes

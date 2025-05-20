@@ -16,13 +16,15 @@ import {
   CSpinner,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilSave, cilX } from '@coreui/icons'
+import { cilSave, cilX, cilCloudUpload } from '@coreui/icons'
 import {
   fetchOrganizationById,
   createOrganization,
   updateOrganization,
   clearOrganizationError,
+  deployOrganization,
 } from '../../organizationSlice'
+import { OrganizationStatus } from '../../constants'
 
 const OrganizationForm = () => {
   const { id } = useParams()
@@ -99,6 +101,20 @@ const OrganizationForm = () => {
 
   const handleCancel = () => {
     navigate('/admin/organizaciones')
+  }
+
+  const handleDeploy = () => {
+    if (!id || !selectedOrganization) return
+
+    dispatch(deployOrganization(id))
+      .unwrap()
+      .then(() => {
+        // Refresh the organization data after deployment
+        dispatch(fetchOrganizationById(id))
+      })
+      .catch((error) => {
+        console.error('Error deploying organization:', error)
+      })
   }
 
   if (loading && id) {
@@ -214,6 +230,26 @@ const OrganizationForm = () => {
             <CIcon icon={cilX} className="me-2" />
             Cancelar
           </CButton>
+
+          {/* Show Deploy button only for organizations with CREATING status */}
+          {id &&
+            selectedOrganization &&
+            selectedOrganization.status === OrganizationStatus.CREATING && (
+              <CButton
+                color="success"
+                variant="outline"
+                className="me-2"
+                onClick={handleDeploy}
+                disabled={loading}
+              >
+                {loading ? (
+                  <CSpinner size="sm" className="me-2" />
+                ) : (
+                  <CIcon icon={cilCloudUpload} className="me-2" />
+                )}
+                Desplegar
+              </CButton>
+            )}
 
           <CButton color="primary" type="submit" disabled={loading}>
             {loading ? (

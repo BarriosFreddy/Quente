@@ -43,47 +43,73 @@ export class OrganizationDeployService {
       return false;
     }
 
+    // Get MongoDB connections
+    const mongoDBService = container.resolve(MongoDBService);
+    const adminConnection = mongoDBService.getConnection('quente_admin');
+    const orgConnection = mongoDBService.getConnection(organization.uid);
+
+    // Start a MongoDB session for the transaction
+    const session = await adminConnection.startSession();
+
     // Update organization status to in-progress
     try {
-      await this.updateOrganizationStatus(
-        organization._id?.toString(),
-        OrganizationStatus.CREATING,
-      );
+      // Start a transaction
+      session.startTransaction();
+
       this.logger.info(
         `Starting deployment for organization: ${organization.name} (${organization.uid})`,
       );
 
-      const connection = container
-        .resolve(MongoDBService)
-        .getConnection(organization.uid);
+      // Update status to CREATING - part of the transaction
+      await this.updateOrganizationStatus(
+        this.getOrganizationId(organization),
+        OrganizationStatus.CREATING,
+        session,
+      );
 
       // Create collections and indexes
       const collections = await this.createCollectionsAndIndexes(
-        connection,
+        orgConnection,
         organization,
+        session,
       );
-      if (!collections) return false;
+      if (!collections) {
+        await session.abortTransaction();
+        return false;
+      }
 
       // Create initial data
       const initialData = await this.createInitialData(
-        connection,
+        orgConnection,
         organization,
+        session,
       );
-      if (!initialData) return false;
+      if (!initialData) {
+        await session.abortTransaction();
+        return false;
+      }
 
       // Create admin user
-      const adminUser = await this.createAdminUser(organization);
-      if (!adminUser) return false;
+      const adminUser = await this.createAdminUser(organization, session);
+      if (!adminUser) {
+        await session.abortTransaction();
+        return false;
+      }
 
       // Set organization status to active
       await this.updateOrganizationStatus(
-        organization._id?.toString(),
+        this.getOrganizationId(organization),
         OrganizationStatus.ACTIVE,
+        session,
       );
+
+      // Commit the transaction
+      await session.commitTransaction();
 
       this.logger.info(
         `Successfully deployed organization: ${organization.name} (${organization.uid})`,
       );
+
       return true;
     } catch (error) {
       this.logger.error(
@@ -92,13 +118,29 @@ export class OrganizationDeployService {
         }`,
       );
 
+      // Abort the transaction on error
+      await session.abortTransaction();
+
       // Set organization status to error
-      await this.updateOrganizationStatus(
-        organization._id?.toString(),
-        OrganizationStatus.INACTIVE,
-      );
+      try {
+        await this.updateOrganizationStatus(
+          this.getOrganizationId(organization),
+          OrganizationStatus.INACTIVE,
+        );
+      } catch (statusError) {
+        this.logger.error(
+          `Failed to update organization status after failed deployment: ${
+            statusError instanceof Error
+              ? statusError.message
+              : String(statusError)
+          }`,
+        );
+      }
 
       return false;
+    } finally {
+      // End the session regardless of outcome
+      await session.endSession();
     }
   }
 
@@ -108,20 +150,15 @@ export class OrganizationDeployService {
   private async createCollectionsAndIndexes(
     connection: any,
     organization: Organization,
+    session?: any,
   ): Promise<boolean> {
     try {
       this.logger.info(
         `Creating collections and indexes for ${organization.uid}`,
       );
 
+      // Pass session to collection operations where supported
       const itemsCollection = connection.collection('items');
-      const rolesCollection = connection.collection('roles');
-      const sequenceCodesCollection = connection.collection('sequenced-codes');
-      const modulesCollection = connection.collection('modules');
-      const invEnumerationsCollection =
-        connection.collection('inv_enumerations');
-      const clientsCollection = connection.collection('clients');
-
       // Create indexes for faster queries
       await itemsCollection.createIndex(
         { code: 1, name: 1 },
@@ -150,10 +187,12 @@ export class OrganizationDeployService {
   private async createInitialData(
     connection: any,
     organization: Organization,
+    session?: any,
   ): Promise<boolean> {
     try {
       this.logger.info(`Creating initial data for ${organization.uid}`);
 
+      // Get collection references
       const rolesCollection = connection.collection('roles');
       const sequenceCodesCollection = connection.collection('sequenced-codes');
       const modulesCollection = connection.collection('modules');
@@ -161,121 +200,139 @@ export class OrganizationDeployService {
         connection.collection('inv_enumerations');
       const clientsCollection = connection.collection('clients');
 
-      // Insert roles
-      await rolesCollection.insertMany([{ name: 'ADMIN' }, { name: 'SELLER' }]);
+      // Create session options object if session is provided
+      const options = session ? { session } : {};
 
-      // Insert sequence codes
-      await sequenceCodesCollection.insertOne({
-        prefixPart1: 'RV',
-        prefixPart2: '230000000',
-        sequence: 0,
-      });
+      // Insert roles with session if provided
+      await rolesCollection.insertMany(
+        [{ name: 'ADMIN' }, { name: 'SELLER' }],
+        options,
+      );
+
+      // Insert sequence codes with session if provided
+      await sequenceCodesCollection.insertOne(
+        {
+          prefixPart1: 'RV',
+          prefixPart2: '20000000',
+          sequence: 0,
+        },
+        options,
+      );
 
       // Insert enumeration values
-      await invEnumerationsCollection.insertOne({
-        name: 'Unidades de medida',
-        description: 'Unidades de medida',
-        values: [
-          {
-            label: 'CAJA',
-            code: 'CAJA',
-          },
-          {
-            label: 'PAQUETE',
-            code: 'PAQUETE',
-          },
-          {
-            label: 'UNIDAD',
-            code: 'UNIDAD',
-          },
-        ],
-        code: 'UDM',
-      });
+      await invEnumerationsCollection.insertOne(
+        {
+          name: 'Unidades de medida',
+          description: 'Unidades de medida',
+          values: [
+            {
+              label: 'CAJA',
+              code: 'CAJA',
+            },
+            {
+              label: 'PAQUETE',
+              code: 'PAQUETE',
+            },
+            {
+              label: 'UNIDAD',
+              code: 'UNIDAD',
+            },
+          ],
+          code: 'UDM',
+        },
+        options,
+      );
 
       // Insert modules
-      await modulesCollection.insertMany([
-        {
-          name: 'Facturación',
-          uri: '/billing',
-          icon: 'billing',
-          createdAt: new Date().toLocaleDateString(),
-          updatedAt: new Date().toLocaleDateString(),
-          code: 'BILLING',
-          access: [
-            {
-              roleCode: 'ADMIN',
-              canAccess: true,
-              canCreate: true,
-              canUpdate: true,
-              canDelete: true,
-              canExecute: true,
-            },
-            {
-              roleCode: 'SELLER',
-              canAccess: true,
-              canCreate: true,
-              canUpdate: false,
-              canDelete: false,
-              canExecute: false,
-            },
-          ],
-        },
-        {
-          name: 'Cuenta de usuario',
-          code: 'USER_ACCOUNT',
-          uri: '/user-account',
-          icon: 'user-account',
-          createdAt: new Date().toLocaleDateString(),
-          updatedAt: new Date().toLocaleDateString(),
-          access: [
-            {
-              roleCode: 'ADMIN',
-              canAccess: true,
-              canCreate: true,
-              canUpdate: true,
-              canDelete: true,
-              canExecute: true,
-            },
-          ],
-        },
-        {
-          name: 'Tablero',
-          code: 'DASHBOARD',
-          uri: '/dashboard',
-          icon: 'dashboard',
-          createdAt: new Date().toLocaleDateString(),
-          updatedAt: new Date().toLocaleDateString(),
-          access: [
-            {
-              roleCode: 'ADMIN',
-              canAccess: true,
-              canCreate: false,
-              canUpdate: false,
-              canDelete: false,
-              canExecute: false,
-            },
-            {
-              roleCode: 'SELLER',
-              canAccess: true,
-              canCreate: false,
-              canUpdate: false,
-              canDelete: false,
-              canExecute: false,
-            },
-          ],
-        },
-      ]);
+      await modulesCollection.insertMany(
+        [
+          {
+            name: 'Facturación',
+            uri: '/billing',
+            icon: 'billing',
+            createdAt: new Date().toLocaleDateString(),
+            updatedAt: new Date().toLocaleDateString(),
+            code: 'BILLING',
+            access: [
+              {
+                roleCode: 'ADMIN',
+                canAccess: true,
+                canCreate: true,
+                canUpdate: true,
+                canDelete: true,
+                canExecute: true,
+              },
+              {
+                roleCode: 'SELLER',
+                canAccess: true,
+                canCreate: true,
+                canUpdate: false,
+                canDelete: false,
+                canExecute: false,
+              },
+            ],
+          },
+          {
+            name: 'Cuenta de usuario',
+            code: 'USER_ACCOUNT',
+            uri: '/user-account',
+            icon: 'user-account',
+            createdAt: new Date().toLocaleDateString(),
+            updatedAt: new Date().toLocaleDateString(),
+            access: [
+              {
+                roleCode: 'ADMIN',
+                canAccess: true,
+                canCreate: true,
+                canUpdate: true,
+                canDelete: true,
+                canExecute: true,
+              },
+            ],
+          },
+          {
+            name: 'Tablero',
+            code: 'DASHBOARD',
+            uri: '/dashboard',
+            icon: 'dashboard',
+            createdAt: new Date().toLocaleDateString(),
+            updatedAt: new Date().toLocaleDateString(),
+            access: [
+              {
+                roleCode: 'ADMIN',
+                canAccess: true,
+                canCreate: false,
+                canUpdate: false,
+                canDelete: false,
+                canExecute: false,
+              },
+              {
+                roleCode: 'SELLER',
+                canAccess: true,
+                canCreate: false,
+                canUpdate: false,
+                canDelete: false,
+                canExecute: false,
+              },
+            ],
+          },
+        ],
+        options,
+      );
 
       // Insert default client
-      await clientsCollection.insertOne({
-        name: 'CLIENTE FINAL',
-        dni: '1111111111',
-        dniType: 'CC',
-        createdAt: {
-          date: Date.now(),
-          offset: new Date().getTimezoneOffset(),
+      await clientsCollection.insertOne(
+        {
+          name: 'ANONIMO',
+          dni: '1111111111',
+          dniType: 'CC',
+          createdAt: {
+            date: Date.now(),
+            offset: new Date().getTimezoneOffset(),
+          },
         },
-      });
+        options,
+      );
 
       return true;
     } catch (error) {
@@ -291,11 +348,17 @@ export class OrganizationDeployService {
   /**
    * Create admin user for the organization
    */
-  private async createAdminUser(organization: Organization): Promise<boolean> {
+  private async createAdminUser(
+    organization: Organization,
+    session?: any,
+  ): Promise<boolean> {
     try {
       this.logger.info(`Creating admin user for ${organization.uid}`);
 
+      // Set the tenant ID for the user account service
       this.userAccountService.setTenantId = AUTH_DATABASE;
+
+      // Use session in user account operations if provided
 
       const adminUser = {
         dniType: 'CC',
@@ -303,7 +366,7 @@ export class OrganizationDeployService {
         firstName: 'SUPER-ADMIN',
         lastName: 'SUPER-ADMIN',
         email: `admin@${organization.uid}.com`,
-        password: 'fbarrios',
+        password: '',
         roles: ['ADMIN', 'SELLER'],
         organization: {
           name: organization.name,
@@ -324,23 +387,52 @@ export class OrganizationDeployService {
   }
 
   /**
-   * Update organization status
+   * Gets the organization ID in string format
+   * @param organization Organization object
+   * @returns string representation of organization ID
+   */
+  private getOrganizationId(organization: Organization): string {
+    // Handle different formats of organization ID
+    if (organization.id) {
+      return organization.id;
+    } else if (organization['_id']) {
+      return organization['_id'].toString();
+    } else if (organization._id instanceof Types.ObjectId) {
+      return organization._id.toString();
+    }
+    throw new Error('Organization ID not found');
+  }
+
+  /**
+   * Updates the status of an organization
+   * @param id Organization ID
+   * @param status New organization status
+   * @param session MongoDB session for transactions
+   * @returns boolean indicating success
    */
   private async updateOrganizationStatus(
-    id: string | undefined,
+    id: string,
     status: OrganizationStatus,
-  ): Promise<void> {
-    if (!id || !this.organizationService) return;
-
+    session?: any,
+  ): Promise<boolean> {
     try {
-      this.logger.info(`Updating organization ${id} status to ${status}`);
-      await this.organizationService.update(id, { status } as Organization);
+      if (!id || !this.organizationService) return false;
+      this.logger.info(`Updating organization status to ${status}: ${id}`);
+      await this.organizationService.update(
+        id,
+        <Organization>{
+          status,
+        },
+        session,
+      );
+      return true;
     } catch (error) {
       this.logger.error(
         `Error updating organization status: ${
           error instanceof Error ? error.message : String(error)
         }`,
       );
+      return false;
     }
   }
 

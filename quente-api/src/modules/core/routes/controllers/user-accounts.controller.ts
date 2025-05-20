@@ -44,6 +44,39 @@ class UserAccountsController {
       ? res.status(201).send(userAccountSaved)
       : res.status(400).send('Something went wrong');
   }
+
+  async resetPassword(req: Request, res: Response) {
+    const { id } = req.params;
+    const { password } = req.body;
+
+    if (!password) {
+      return res
+        .status(400)
+        .send({ success: false, message: 'Password is required' });
+    }
+
+    try {
+      const success = await setTenantIdToService(
+        res,
+        userAccountService,
+      ).resetPassword(id, password);
+
+      if (success) {
+        return res
+          .status(200)
+          .send({ success: true, message: 'Password reset successfully' });
+      } else {
+        return res
+          .status(400)
+          .send({ success: false, message: 'Failed to reset password' });
+      }
+    } catch (error) {
+      console.error('Error resetting password:', error);
+      return res
+        .status(500)
+        .send({ success: false, message: 'Internal server error' });
+    }
+  }
 }
 
 const userAccountController = new UserAccountsController();

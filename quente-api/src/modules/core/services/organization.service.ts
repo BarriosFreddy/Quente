@@ -68,4 +68,32 @@ export class OrganizationService extends BaseService<Organization> {
       return Promise.reject(false);
     }
   }
+
+  async deploy(id: string): Promise<boolean> {
+    try {
+      // Find organization by id
+      const organization = await this.getModel().findById(id).exec();
+
+      if (!organization) {
+        console.log(`Organization with id ${id} not found`);
+        return false;
+      }
+
+      // Only deploy if organization is in CREATING status
+      if (organization.status !== OrganizationStatus.CREATING) {
+        console.log(`Organization with id ${id} is not in CREATING status`);
+        return false;
+      }
+
+      // Set the organization service in the deploy service
+      this.organizationDeployService.setOrganizationService(this);
+
+      // Initiate deployment process
+      const result = await this.organizationDeployService.init(organization);
+      return result;
+    } catch (error) {
+      console.log(`Error deploying organization: ${error}`);
+      return Promise.reject(false);
+    }
+  }
 }

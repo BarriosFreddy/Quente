@@ -113,6 +113,22 @@ const organizationService = {
       }
     }
   },
+
+  deployOrganization: async (id) => {
+    try {
+      const response = await ApiService.post(`/organizations/${id}/deploy`)
+      return {
+        data: response.data,
+        success: true,
+      }
+    } catch (error) {
+      console.error(`Error deploying organization with id ${id}:`, error)
+      return {
+        success: false,
+        error: 'Error al desplegar organización',
+      }
+    }
+  },
 }
 
 // Async thunks
@@ -189,7 +205,18 @@ export const deleteOrganization = createAsyncThunk(
     if (!response.success) {
       return rejectWithValue(response.error || 'Error al eliminar organización')
     }
-    return id
+    return { id }
+  },
+)
+
+export const deployOrganization = createAsyncThunk(
+  'organizations/deploy',
+  async (id, { rejectWithValue }) => {
+    const response = await organizationService.deployOrganization(id)
+    if (!response.success) {
+      return rejectWithValue(response.error || 'Error al desplegar organización')
+    }
+    return response.data
   },
 )
 
@@ -321,14 +348,35 @@ const organizationSlice = createSlice({
       })
       .addCase(deleteOrganization.fulfilled, (state, action) => {
         state.loading = false
-        state.organizations = state.organizations.filter((org) => org._id !== action.payload)
-        if (state.selectedOrganization && state.selectedOrganization._id === action.payload) {
+        state.organizations = state.organizations.filter((org) => org._id !== action.payload.id)
+        if (state.selectedOrganization && state.selectedOrganization._id === action.payload.id) {
           state.selectedOrganization = null
         }
       })
       .addCase(deleteOrganization.rejected, (state, action) => {
         state.loading = false
         state.error = action.payload || 'Error al eliminar organización'
+      })
+
+      // Deploy organization
+      .addCase(deployOrganization.pending, (state) => {
+        state.loading = true
+        state.error = null
+      })
+      .addCase(deployOrganization.fulfilled, (state, action) => {
+        state.loading = false
+        // Update the organization in the state with the new data
+        const index = state.organizations.findIndex((org) => org._id === action.payload._id)
+        if (index !== -1) {
+          state.organizations[index] = action.payload
+        }
+        if (state.selectedOrganization && state.selectedOrganization._id === action.payload._id) {
+          state.selectedOrganization = action.payload
+        }
+      })
+      .addCase(deployOrganization.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.payload || 'Error al desplegar organización'
       })
   },
 })

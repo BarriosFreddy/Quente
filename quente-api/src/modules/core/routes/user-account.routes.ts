@@ -49,4 +49,15 @@ userAccountRouter.get(
   userAccountController.findAll,
 );
 
+// Password reset endpoint
+userAccountRouter.put(
+  '/:id/reset-password',
+  validateParameters(idSchema),
+  isAuthenticated,
+  roleValidation(
+    generateAuthKeyPair(ModuleCode.USER_ACCOUNT, Privilege.UPDATE),
+  ),
+  userAccountController.resetPassword,
+);
+
 export default userAccountRouter;
