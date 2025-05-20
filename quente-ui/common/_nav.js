@@ -16,9 +16,9 @@ import { CNavGroup, CNavItem } from '@coreui/react'
 let _nav = [
   {
     component: CNavItem,
-    name: 'Home',
-    to: '/home',
-    icon: <CIcon icon={cilHome} customClassName="nav-icon" />,
+    name: 'Panel de administración',
+    to: '/dashboard',
+    icon: <CIcon icon={cilChartLine} customClassName="nav-icon" />,
     roles: ['ADMIN', 'SELLER'],
   },
   {
@@ -27,13 +27,6 @@ let _nav = [
     icon: <CIcon icon={cilMoney} customClassName="nav-icon" />,
     roles: ['ADMIN', 'SELLER'],
     items: [
-      {
-        component: CNavItem,
-        name: 'Dashboard',
-        to: '/billing-dashboard',
-        icon: <CIcon icon={cilChartLine} customClassName="nav-icon" />,
-        roles: ['ADMIN', 'SELLER'],
-      },
       {
         component: CNavItem,
         name: 'Facturación',

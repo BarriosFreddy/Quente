@@ -44,7 +44,7 @@ const AppHeader = () => {
             <CNavLink to="/billings" component={NavLink}>
               <CIcon icon={cilHistory} /> Historial
             </CNavLink>
-            <CNavLink to="/billing-dashboard" component={NavLink}>
+            <CNavLink to="/dashboard" component={NavLink}>
               <CIcon icon={cilChartLine} /> Dashboard
             </CNavLink>
             <CNavLink to="/inventory-items" component={NavLink}>

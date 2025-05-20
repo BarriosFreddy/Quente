@@ -149,6 +149,19 @@ export class BillingService extends BaseService<Billing> {
       return [];
     }
   }
+  async countSince(startDateAsString: string): Promise<number> {
+    const startDate = dayjs(startDateAsString)
+      .set('hours', 0)
+      .set('minutes', 0)
+      .set('seconds', 0)
+      .utcOffset(-5)
+      .toDate()
+      .getTime();
+    const billingsCount: number = await this.getModel()
+      .find({ 'createdAt.date': { $gte: startDate } })
+      .countDocuments();
+    return billingsCount;
+  }
 }
 
 async function generateSequencedCode(): Promise<string> {

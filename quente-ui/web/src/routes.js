@@ -29,7 +29,7 @@ const routes = [
   { path: '/home', name: 'Home', element: Home },
   { path: '/billing', name: 'Facturación', element: Billing },
   { path: '/billings', name: 'Historial de facturas', element: BillingsHistorical },
-  { path: '/billing-dashboard', name: 'Dashboard', element: Dashboard },
+  { path: '/dashboard', name: 'Dashboard', element: Dashboard },
   { path: '/billing-synchronizer', name: 'Sinchronizer', element: Synchronizer },
   { path: '/inventory-items', name: 'Items', element: Items },
   { path: '/inventory-data-loader', name: 'Cargador de datos', element: DataLoader },

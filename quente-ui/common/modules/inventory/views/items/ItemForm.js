@@ -400,7 +400,7 @@ function ItemForm(props) {
                 </CCol>
                 <CCol xs="12" lg="3">
                   <FormInput
-                    label="Laboratorio (Opcional)"
+                    label="Productor(Opcional)"
                     type="text"
                     uppercase="true"
                     name="laboratory"

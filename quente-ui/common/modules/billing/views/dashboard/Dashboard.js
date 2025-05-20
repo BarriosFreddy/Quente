@@ -89,7 +89,7 @@ const Dashboard = () => {
         <title>TABLERO</title>
       </Helmet>
 
-      <CCard className="mb-4">
+      <CCard className="my-2 mx-5">
         <CCardHeader>
           <CRow>
             <CCol sm={5}>
@@ -120,65 +120,73 @@ const Dashboard = () => {
             <CCol sm={6} lg={3}>
               <CWidgetStatsC
                 className="mb-3"
-                icon={<CIcon icon={cilCart} height={36} />}
+                icon={<CIcon icon={cilCart} color="#fff" height={36} />}
                 color="primary"
+                inverse
                 title="Artículos Totales"
-                value={dashboardStats.totalItems.toLocaleString()}
+                value={dashboardStats?.totalItems?.toLocaleString()}
                 progress={{
                   value: Math.min(
                     100,
-                    Math.round((dashboardStats.totalItems / 1000) * 100)
+                    Math.round((dashboardStats?.totalItems / 1000) * 100)
                   ),
                 }}
               />
             </CCol>
             <CCol sm={6} lg={3}>
               <CWidgetStatsC
+                loading={dashboardLoading}
                 className="mb-3"
                 icon={<CIcon icon={cilStorage} height={36} />}
                 color="info"
+                inverse
                 title="Inventario Actual"
-                value={dashboardStats.currentStock.toLocaleString()}
+                value={dashboardStats?.currentStock?.toLocaleString()}
                 progress={{
                   value: Math.min(
                     100,
-                    Math.round((dashboardStats.currentStock / 5000) * 100)
+                    Math.round((dashboardStats?.currentStock / 5000) * 100)
                   ),
                 }}
               />
             </CCol>
             <CCol sm={6} lg={3}>
               <CWidgetStatsC
+                loading={dashboardLoading}
                 className="mb-3"
                 icon={<CIcon icon={cilCash} height={36} />}
                 color="success"
+                inverse
                 title="Ingresos Totales"
-                value={formatCurrency(dashboardStats.totalRevenue)}
+                value={formatCurrency(dashboardStats?.totalRevenue)}
                 progress={{
                   value: Math.min(
                     100,
-                    Math.round((dashboardStats.totalRevenue / 50000) * 100)
+                    Math.round((dashboardStats?.totalRevenue / 50000) * 100)
                   ),
                 }}
               />
             </CCol>
             <CCol sm={6} lg={3}>
               <CWidgetStatsC
+                loading={dashboardLoading}
                 className="mb-3"
                 icon={<CIcon icon={cilBasket} height={36} />}
                 color="warning"
+                inverse
                 title="Número de Facturaciones"
-                value={dashboardStats.numberOfBillings.toLocaleString()}
+                value={dashboardStats?.numberOfBillings?.toLocaleString()}
                 progress={{
                   value: Math.min(
                     100,
-                    Math.round((dashboardStats.numberOfBillings / 100) * 100)
+                    Math.round((dashboardStats?.numberOfBillings / 100) * 100)
                   ),
                 }}
               />
             </CCol>
           </CRow>
           <CChartLine
+            loading={dashboardLoading}
             style={{ height: "300px", marginTop: "40px" }}
             data={{
               labels,
@@ -239,6 +247,7 @@ const Dashboard = () => {
                 </CCardHeader>
                 <CCardBody>
                   <CChartDoughnut
+                    loading={dashboardLoading}
                     data={{
                       labels: categoryLabels,
                       datasets: [

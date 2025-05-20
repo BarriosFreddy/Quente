@@ -34,12 +34,14 @@ export class DashboardService extends BaseService<undefined> {
     itemCategoryService.setTenantId = this.tenantId;
     try {
       // Get data from different services in parallel for better performance
-      const [billings, topSales, items, categories] = await Promise.all([
-        billingService.findGreaterThanDate(startDate),
-        billingService.findTopSalesItems(startDate),
-        itemService.findAll({}),
-        itemCategoryService.findAll({}),
-      ]);
+      const [billings, topSales, items, categories, numberOfBillings] =
+        await Promise.all([
+          billingService.findGreaterThanDate(startDate),
+          billingService.findTopSalesItems(startDate),
+          itemService.findAll({}),
+          itemCategoryService.findAll({}),
+          billingService.countSince(startDate),
+        ]);
 
       // Calculate total revenue
       const totalRevenue = billings.reduce(
@@ -70,7 +72,7 @@ export class DashboardService extends BaseService<undefined> {
         totalRevenue,
         totalItems,
         currentStock,
-        numberOfBillings: billings.length,
+        numberOfBillings,
         billingsByDay: billings,
         topSellingProducts: topSales,
         stockByCategory,
