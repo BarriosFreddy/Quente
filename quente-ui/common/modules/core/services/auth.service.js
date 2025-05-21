@@ -48,15 +48,40 @@ export const login = (userAccountLogin) => async (dispatch, _, api) => {
 };
 
 /**
- * Logs out the current user by clearing cookies and local state
+ * Logs out the current user by clearing cookies, local state, and IndexedDB
  */
 export const logout = () => async (dispatch, _, api) => {
   try {
+    // Clear IndexedDB databases
+    const clearIndexedDB = async () => {
+      // Get all available IndexedDB databases
+      const databases = await window.indexedDB.databases();
+      
+      // Delete each database
+      for (const db of databases) {
+        if (db.name) {
+          console.log(`Clearing IndexedDB database: ${db.name}`);
+          window.indexedDB.deleteDatabase(db.name);
+        }
+      }
+    };
+    
     const { status, data } = (await api.get("/auth/logout")) || {};
     
     if (status === 200) {
+      // Clear Redux state
       dispatch(setIsLoggedIn(false));
       dispatch(setInfoUser(null));
+      
+      // Clear IndexedDB
+      try {
+        await clearIndexedDB();
+      } catch (dbError) {
+        console.error("Error clearing IndexedDB:", dbError);
+      }
+      
+      // Reload the page to ensure all state is cleared
+      window.location.href = '/login';
     } else {
       console.error("Logout failed:", data?.message || "Unknown error");
     }
@@ -65,6 +90,23 @@ export const logout = () => async (dispatch, _, api) => {
     // Force logout on client side even if server request fails
     dispatch(setIsLoggedIn(false));
     dispatch(setInfoUser(null));
+    
+    // Still try to clear IndexedDB
+    try {
+      const databases = await window.indexedDB.databases();
+      for (const db of databases) {
+        if (db.name) {
+          window.indexedDB.deleteDatabase(db.name);
+        }
+      }
+      
+      // Redirect to login page
+      window.location.href = '/login';
+    } catch (dbError) {
+      console.error("Error clearing IndexedDB during error recovery:", dbError);
+      // Last resort: just redirect
+      window.location.href = '/login';
+    }
   }
 };
 
