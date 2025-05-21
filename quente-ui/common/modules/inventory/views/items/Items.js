@@ -211,11 +211,11 @@ function Item() {
                       </CButton>
                     </CInputGroup>
                   </CCol>
-                  <CCol xs="2" lg="1">
+                  {/* <CCol xs="2" lg="1">
                     <CButton color="link" onClick={handleFilter}>
                       Filtrar
                     </CButton>
-                  </CCol>
+                  </CCol> */}
                   {showFilterSection && (
                     <>
                       <CCol xs="2" lg="1" className="text-end">
