@@ -152,7 +152,7 @@ export class OrganizationDeployService {
     connection: any,
     organization: Organization,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    session?: any,
+    _session?: any, // Using underscore prefix to mark as intentionally unused
   ): Promise<boolean> {
     try {
       this.logger.info(
