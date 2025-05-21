@@ -187,7 +187,7 @@ class QuenteDatabase extends Dexie {
       try {
         const endpoint = isNew ? "/items" : `/items/${item._id}`;
         const method = isNew ? "post" : "put";
-        const itemToUpdate = { ...item, _id: undefined };
+        const itemToUpdate = isNew ? item : { ...item, _id: undefined };
         console.log({ itemToUpdate });
         const response = await apiService[method](endpoint, itemToUpdate);
 
@@ -264,7 +264,7 @@ class QuenteDatabase extends Dexie {
       try {
         const endpoint = isNew ? "/billings" : `/billings/${billing._id}`;
         const method = isNew ? "post" : "put";
-        const billingToUpdate = { ...billing, _id: undefined };
+        const billingToUpdate = isNew ? billing : { ...billing, _id: undefined };
 
         const response = await apiService[method](endpoint, billingToUpdate);
 
