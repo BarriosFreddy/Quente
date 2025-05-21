@@ -38,8 +38,8 @@ export class DashboardService extends BaseService<undefined> {
         await Promise.all([
           billingService.findGreaterThanDate(startDate),
           billingService.findTopSalesItems(startDate),
-          itemService.findAll({}),
-          itemCategoryService.findAll({}),
+          itemService.findAll({ page: 0, size: 0 }),
+          itemCategoryService.findAll({ page: 0, size: 0 }),
           billingService.countSince(startDate),
         ]);
 
@@ -66,7 +66,7 @@ export class DashboardService extends BaseService<undefined> {
       const stockByCategory = await this.getStockByCategory(items, categories);
 
       // Get low stock items (items below reorder point)
-      const lowStockItems = this.getLowStockItems(items);
+      const lowStockItems = this.getLowStockItems(items, 10);
 
       return {
         totalRevenue,
@@ -122,7 +122,7 @@ export class DashboardService extends BaseService<undefined> {
   /**
    * Get items that need to be restocked (below reorder point)
    */
-  private getLowStockItems(items: any[]) {
+  private getLowStockItems(items: any[], limit?: number) {
     return items
       .map((item: any) => {
         const currentStock =
@@ -142,7 +142,8 @@ export class DashboardService extends BaseService<undefined> {
         };
       })
       .filter((item: any) => item.needsRestock)
-      .sort((a: any, b: any) => a.currentStock - b.currentStock); // Sort by lowest stock first
+      .sort((a: any, b: any) => a.currentStock - b.currentStock)
+      .slice(0, limit); // Sort by lowest stock first
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
