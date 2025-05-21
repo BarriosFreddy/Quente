@@ -34,16 +34,55 @@ export class OrganizationService extends BaseService<Organization> {
   }
   async save(organization: Organization): Promise<Organization> {
     try {
+      // Check if an organization with the same name already exists
+      const existingOrg = await this.getModel()
+        .findOne({ name: organization.name })
+        .exec();
+      if (existingOrg) {
+        return Promise.reject({
+          message: `An organization with the name '${organization.name}' already exists.`,
+          code: 'DUPLICATE_NAME',
+        });
+      }
+
+      // Set status to CREATING for new organizations
       organization.status = OrganizationStatus.CREATING;
+
+      // Generate a uid based on the organization name (if not already provided)
+      if (!organization.uid) {
+        // Generate a slug-like uid from the name (lowercase, no spaces, alphanumeric only)
+        const uidBaseOnName = organization.name
+          ?.toLowerCase()
+          .replace(/\s+/g, '_') // Replace spaces with underscores
+          .replace(/[^a-z0-9_]/g, '') // Remove non-alphanumeric characters
+          .substring(0, 20); // Limit length
+
+        // Add a timestamp to ensure uniqueness
+        organization.uid = `quente_${uidBaseOnName}_${Date.now()
+          .toString()
+          .substring(7)}`;
+      }
+
       const organizationSaved = await this.getModel().create(organization);
+
+      // Initialize the organization in a separate tick to avoid blocking
       nextTick(async () => {
         if (organizationSaved)
           await this.organizationDeployService.init(organizationSaved);
       });
+
       return organizationSaved;
     } catch (error) {
       console.log(error);
-      return Promise.reject(null);
+      // Check if this is a MongoDB duplicate key error (E11000)
+      if (error.name === 'MongoServerError' && error.code === 11000) {
+        return Promise.reject({
+          message:
+            'An organization with the same name or identifier already exists.',
+          code: 'DUPLICATE_KEY',
+        });
+      }
+      return Promise.reject(error);
     }
   }
   async update(

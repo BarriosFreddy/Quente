@@ -37,7 +37,7 @@ export class OrganizationService {
     }
   }
 
-  async create(organization: Partial<Organization>): Promise<ApiResponse<Organization>> {
+  async create(organization: Organization): Promise<ApiResponse<Organization>> {
     try {
       const response = await this.axiosInstance.post<Organization>('/organizations', organization);
       return {

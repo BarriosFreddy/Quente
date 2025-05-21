@@ -89,8 +89,8 @@ const OrganizationList = () => {
   const filteredOrganizations =
     organizations?.filter(
       (org) =>
-        org.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        org.nit.toLowerCase().includes(searchTerm.toLowerCase()),
+        (org.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+        (org.nit?.toLowerCase() || '').includes(searchTerm.toLowerCase()),
     ) || []
 
   const getStatusBadge = (status) => {

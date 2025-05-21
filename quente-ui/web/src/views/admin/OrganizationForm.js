@@ -14,6 +14,7 @@ import {
   CFormFeedback,
   CRow,
   CSpinner,
+  CAlert,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { cilSave, cilX, cilCloudUpload } from '@coreui/icons'
@@ -23,6 +24,7 @@ import {
   updateOrganization,
   clearOrganizationError,
   deployOrganization,
+  fetchOrganizations,
 } from '../../organizationSlice'
 import { OrganizationStatus } from '../../constants'
 
@@ -31,7 +33,9 @@ const OrganizationForm = () => {
   const dispatch = useDispatch()
   const navigate = useNavigate()
 
-  const { selectedOrganization, loading, error } = useSelector((state) => state.organizations)
+  const { selectedOrganization, loading, error, organizations } = useSelector(
+    (state) => state.organizations,
+  )
 
   const [form, setForm] = useState({
     name: '',
@@ -43,11 +47,15 @@ const OrganizationForm = () => {
   })
 
   const [validated, setValidated] = useState(false)
+  const [nameExists, setNameExists] = useState(false)
+  const [nameExistsMessage, setNameExistsMessage] = useState('')
 
   useEffect(() => {
     if (id) {
       dispatch(fetchOrganizationById(id))
     } else {
+      // Load all organizations for validation when creating a new one
+      dispatch(fetchOrganizations())
       dispatch(clearOrganizationError())
     }
   }, [dispatch, id])
@@ -71,6 +79,31 @@ const OrganizationForm = () => {
       ...prevForm,
       [name]: value,
     }))
+
+    // Check for duplicate name when the name field changes
+    if (name === 'name' && value.trim() !== '') {
+      const trimmedValue = value.trim().toLowerCase()
+
+      // Skip validation if editing an existing organization with the same name
+      if (id && selectedOrganization && selectedOrganization.name.toLowerCase() === trimmedValue) {
+        setNameExists(false)
+        setNameExistsMessage('')
+        return
+      }
+
+      // Check if name already exists in organizations
+      const duplicateName = organizations?.some(
+        (org) => org.name.toLowerCase() === trimmedValue && org._id !== id,
+      )
+
+      if (duplicateName) {
+        setNameExists(true)
+        setNameExistsMessage(`An organization named "${value}" already exists.`)
+      } else {
+        setNameExists(false)
+        setNameExistsMessage('')
+      }
+    }
   }
 
   const handleSubmit = (e) => {
@@ -79,23 +112,35 @@ const OrganizationForm = () => {
 
     setValidated(true)
 
-    if (formElement.checkValidity() === false) {
+    if (formElement.checkValidity() === false || nameExists) {
       e.stopPropagation()
       return
     }
 
     if (id) {
-      dispatch(updateOrganization({ id, organization: form })).then((result) => {
-        if (!result.error) {
+      dispatch(updateOrganization({ id, organization: form }))
+        .unwrap()
+        .then(() => {
           navigate('/admin/organizaciones')
-        }
-      })
+        })
+        .catch((err) => {
+          if (err?.code === 'DUPLICATE_NAME' || err?.code === 'DUPLICATE_KEY') {
+            setNameExists(true)
+            setNameExistsMessage(err.message || 'An organization with this name already exists.')
+          }
+        })
     } else {
-      dispatch(createOrganization(form)).then((result) => {
-        if (!result.error) {
+      dispatch(createOrganization(form))
+        .unwrap()
+        .then(() => {
           navigate('/admin/organizaciones')
-        }
-      })
+        })
+        .catch((err) => {
+          if (err?.code === 'DUPLICATE_NAME' || err?.code === 'DUPLICATE_KEY') {
+            setNameExists(true)
+            setNameExistsMessage(err.message || 'An organization with this name already exists.')
+          }
+        })
     }
   }
 
@@ -109,11 +154,12 @@ const OrganizationForm = () => {
     dispatch(deployOrganization(id))
       .unwrap()
       .then(() => {
-        // Refresh the organization data after deployment
-        dispatch(fetchOrganizationById(id))
+        dispatch(fetchOrganizations())
+        navigate('/admin/organizaciones')
       })
       .catch((error) => {
         console.error('Error deploying organization:', error)
+        alert(`Error al desplegar la organización: ${error.message || 'Error desconocido'}`)
       })
   }
 
@@ -148,8 +194,16 @@ const OrganizationForm = () => {
                 onChange={handleChange}
                 required
                 placeholder="Nombre de la organización"
+                invalid={validated && (form.name === '' || nameExists)}
               />
-              <CFormFeedback invalid>Por favor ingrese un nombre</CFormFeedback>
+              <CFormFeedback invalid>
+                {nameExists ? nameExistsMessage : 'Por favor ingrese un nombre'}
+              </CFormFeedback>
+              {nameExists && !validated && (
+                <CAlert color="warning" className="mt-2" size="sm">
+                  {nameExistsMessage}
+                </CAlert>
+              )}
             </CCol>
 
             <CCol md={6}>

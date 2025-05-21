@@ -217,9 +217,17 @@ const UserAccountForm = () => {
       userData.roles = ['USER']
     }
 
-    // Always remove password from the main user data
+    // Always remove password and _id from the main user data
     const userPassword = userData.password
     delete userData.password
+
+    if (isEditMode) {
+      // Remove fields that cause validation errors when updating
+      delete userData._id // MongoDB immutable field
+      delete userData.createdAt // Should not be updated
+      delete userData.__v // Mongoose version key
+      delete userData.organizationId // Should use organization reference instead
+    }
 
     if (isEditMode) {
       // First update the user data without password

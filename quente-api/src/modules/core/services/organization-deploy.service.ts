@@ -363,18 +363,19 @@ export class OrganizationDeployService {
       const adminUser = {
         dniType: 'CC',
         dni: '1111111111',
-        firstName: 'SUPER-ADMIN',
-        lastName: 'SUPER-ADMIN',
+        firstName: 'ADMIN',
+        lastName: `${organization.name}`,
         email: `admin@${organization.uid}.com`,
-        password: '',
+        password: `admin cuenteo`,
         roles: ['ADMIN', 'SELLER'],
         organization: {
           name: organization.name,
+          uid: organization.uid, // Ensure UID is present
           tenantId: organization.uid,
         },
       };
 
-      await this.userAccountService.save(adminUser);
+      await this.userAccountService.save(adminUser, session);
       return true;
     } catch (error) {
       this.logger.error(
