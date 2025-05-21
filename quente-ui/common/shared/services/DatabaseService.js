@@ -1,5 +1,4 @@
 import Dexie from "dexie";
-import { v4 as uuidv4 } from "uuid";
 import isOnline from "is-online";
 import { hexoid } from "hexoid";
 const OBJECT_ID_LENGTH = 24;
@@ -23,8 +22,9 @@ class QuenteDatabase extends Dexie {
 
   // Add to sync queue when offline
   async addToSyncQueue(entity, operation, data) {
+    const _id = hexoid(OBJECT_ID_LENGTH)();
     return await this.syncQueue.add({
-      _id: uuidv4(),
+      _id,
       entity,
       operation,
       data,
@@ -171,7 +171,8 @@ class QuenteDatabase extends Dexie {
     const isonline = await isOnline();
     // Generate ID if new item
     if (isNew) {
-      item._id = uuidv4();
+      const _id = hexoid(OBJECT_ID_LENGTH)();
+      item._id = _id;
     }
     // Add timestamps and sync status
     const itemToSave = {
@@ -244,7 +245,8 @@ class QuenteDatabase extends Dexie {
 
     // Generate ID if new billing
     if (isNew) {
-      billing._id = uuidv4();
+      const _id = hexoid(OBJECT_ID_LENGTH)();
+      billing._id = _id;
     }
 
     // Add timestamps and sync status
