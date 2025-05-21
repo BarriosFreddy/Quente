@@ -222,7 +222,6 @@ const UserAccountForm = () => {
     delete userData.password
 
     if (isEditMode) {
-      // Remove fields that cause validation errors when updating
       delete userData._id // MongoDB immutable field
       delete userData.createdAt // Should not be updated
       delete userData.__v // Mongoose version key

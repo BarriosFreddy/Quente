@@ -29,6 +29,8 @@ const UserAccountUpdateSchema: Schema = joi.object({
   phone: joi.string(),
   address: joi.string(),
   roles: joi.array().items(joi.string()),
+  updatedAt: joi.date(),
+  organization: joi.object(),
 });
 
 export { UserAccountCreateSchema, UserAccountUpdateSchema };
