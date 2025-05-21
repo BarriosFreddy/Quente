@@ -1,7 +1,6 @@
-import { Schema, Types } from 'mongoose';
+import { Schema } from 'mongoose';
 
 export const itemCategorySchema = new Schema({
-  _id: Types.ObjectId,
   code: String,
   name: String,
   description: String,

@@ -22,7 +22,11 @@ class ItemCategoryController {
       categoryService,
     ).findAll({ name, code, page });
     if (parse === 'true') {
-      const itemCategoriesParse = categories.map(({ name, _id }) => {
+      const itemCategoriesParse = categories.map((category) => {
+        const { name, _id } = category as unknown as {
+          name?: string;
+          _id: string;
+        };
         return {
           label: name,
           value: _id,
