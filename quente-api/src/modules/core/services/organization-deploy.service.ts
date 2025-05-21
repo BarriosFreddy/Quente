@@ -1,4 +1,5 @@
 import { autoInjectable, container, singleton, inject } from 'tsyringe';
+import { Types } from 'mongoose';
 import { Logger } from '../../../helpers/logger/logger.service';
 import { OrganizationStatus } from '../entities/enums/organization-status';
 import { Organization } from '../entities/Organization';
@@ -150,6 +151,7 @@ export class OrganizationDeployService {
   private async createCollectionsAndIndexes(
     connection: any,
     organization: Organization,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     session?: any,
   ): Promise<boolean> {
     try {
@@ -394,12 +396,12 @@ export class OrganizationDeployService {
    */
   private getOrganizationId(organization: Organization): string {
     // Handle different formats of organization ID
-    if (organization.id) {
-      return organization.id;
-    } else if (organization['_id']) {
-      return organization['_id'].toString();
-    } else if (organization._id instanceof Types.ObjectId) {
-      return organization._id.toString();
+    if ((organization as any).id) {
+      return (organization as any).id;
+    } else if ((organization as any)['_id']) {
+      return (organization as any)['_id'].toString();
+    } else if ((organization as any)._id instanceof Types.ObjectId) {
+      return (organization as any)._id.toString();
     }
     throw new Error('Organization ID not found');
   }

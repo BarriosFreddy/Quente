@@ -72,10 +72,17 @@ export class OrganizationService extends BaseService<Organization> {
       });
 
       return organizationSaved;
-    } catch (error) {
+    } catch (error: unknown) {
       console.log(error);
       // Check if this is a MongoDB duplicate key error (E11000)
-      if (error.name === 'MongoServerError' && error.code === 11000) {
+      if (
+        error &&
+        typeof error === 'object' &&
+        'name' in error &&
+        'code' in error &&
+        error.name === 'MongoServerError' &&
+        error.code === 11000
+      ) {
         return Promise.reject({
           message:
             'An organization with the same name or identifier already exists.',
