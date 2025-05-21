@@ -264,7 +264,9 @@ class QuenteDatabase extends Dexie {
       try {
         const endpoint = isNew ? "/billings" : `/billings/${billing._id}`;
         const method = isNew ? "post" : "put";
-        const billingToUpdate = isNew ? billing : { ...billing, _id: undefined };
+        const billingToUpdate = isNew
+          ? billing
+          : { ...billing, _id: undefined };
 
         const response = await apiService[method](endpoint, billingToUpdate);
 
@@ -275,6 +277,23 @@ class QuenteDatabase extends Dexie {
             syncStatus: "synced",
           });
           return response.data;
+        }
+        if (billing.items && billing.items.length > 0) {
+          try {
+            for (const item of billing.items) {
+              const itemId = item._id;
+              const response = await apiService.get(`/items/${itemId}`);
+              if (response && response.status >= 200 && response.status < 300) {
+                // Update with server data
+                await this.items.put({
+                  ...response.data,
+                  syncStatus: "synced",
+                });
+              }
+            }
+          } catch (error) {
+            console.error("Error updating local stock:", error);
+          }
         }
       } catch (error) {
         console.error("Failed to sync billing with server:", error);
