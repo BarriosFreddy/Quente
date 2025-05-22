@@ -45,7 +45,7 @@ const AppHeader = () => {
               <CIcon icon={cilHistory} /> Historial
             </CNavLink>
             <CNavLink to="/dashboard" component={NavLink}>
-              <CIcon icon={cilChartLine} /> Dashboard
+              <CIcon icon={cilChartLine} /> Panel de administración
             </CNavLink>
             <CNavLink to="/inventory-items" component={NavLink}>
               <CIcon icon={cilInbox} /> Inventario
