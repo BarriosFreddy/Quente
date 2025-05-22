@@ -278,23 +278,6 @@ class QuenteDatabase extends Dexie {
           });
           return response.data;
         }
-        if (billing.items && billing.items.length > 0) {
-          try {
-            for (const item of billing.items) {
-              const itemId = item._id;
-              const response = await apiService.get(`/items/${itemId}`);
-              if (response && response.status >= 200 && response.status < 300) {
-                // Update with server data
-                await this.items.put({
-                  ...response.data,
-                  syncStatus: "synced",
-                });
-              }
-            }
-          } catch (error) {
-            console.error("Error updating local stock:", error);
-          }
-        }
       } catch (error) {
         console.error("Failed to sync billing with server:", error);
         // Mark as pending sync

@@ -10,11 +10,30 @@ import {
 } from "../reducers/billings.reducer";
 import isOnline from "is-online";
 import db from "../../../shared/services/DatabaseService";
+import { removeStock } from "../../inventory/services/items.service";
 
 export const saveBilling = (billing) => async (dispatch, getState, api) => {
   try {
     dispatch(setSaving(true));
-    const savedBilling = await db.saveBilling(billing, api)
+    const savedBilling = await db.saveBilling(billing, api);
+    
+    // If billing was saved successfully, update inventory by removing stock
+    if (savedBilling) {
+      // Process each item in the billing to remove stock
+      if (billing.items && Array.isArray(billing.items)) {
+        for (const item of billing.items) {
+          if (item._id && item.units) {
+            // Apply the removeStock logic to update local IndexDB
+            try {
+              await dispatch(removeStock(item._id, item.units));
+            } catch (err) {
+              console.error(`Failed to update stock for item ${item.name || item.code}:`, err);
+            }
+          }
+        }
+      }
+    }
+    
     dispatch(setSaveSuccess(!!savedBilling));
   } catch (error) {
     console.error("Error saving billing:", error);

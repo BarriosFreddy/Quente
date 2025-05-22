@@ -6,6 +6,10 @@ class ItemsRepository {
   constructor(db) {
     this.db = db;
   }
+  
+  getCollectionName() {
+    return this.#collectionName;
+  }
   async save(item) {
     return await this.db.save(this.#collectionName, item);
   }
