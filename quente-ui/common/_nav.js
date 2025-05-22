@@ -58,14 +58,14 @@ let _nav = [
     items: [
       {
         component: CNavItem,
-        name: 'Items',
+        name: 'Productos',
         to: '/inventory-items',
         icon: <CIcon icon={cilSquare} customClassName="nav-icon" />,
         roles: ['ADMIN', 'SELLER'],
       },
       {
         component: CNavItem,
-        name: 'Categorias de items',
+        name: 'Categorias de productos',
         to: '/inventory-item-categories',
         icon: <CIcon icon={cilSitemap} customClassName="nav-icon" />,
         roles: ['ADMIN'],

@@ -339,7 +339,7 @@ function ItemForm(props) {
               <CRow>
                 <CCol xs="12" lg="3">
                   <FormInput
-                    label="Código"
+                    label="Código único"
                     type="text"
                     uppercase="true"
                     name="code"
@@ -400,7 +400,7 @@ function ItemForm(props) {
                 </CCol>
                 <CCol xs="12" lg="3">
                   <FormInput
-                    label="Productor(Opcional)"
+                    label="Fabricante (Opcional)"
                     type="text"
                     uppercase="true"
                     name="laboratory"
@@ -422,7 +422,7 @@ function ItemForm(props) {
                 </CCol>
                 <CCol xs="12" lg="3">
                   <FormInput
-                    label="SKU"
+                    label="SKU (Opcional)"
                     type="text"
                     name="sku"
                     value={item.sku}
@@ -636,7 +636,7 @@ function ItemForm(props) {
                         }}
                       >
                         <FormInput
-                          label="Stock"
+                          label="Cantidad por lote"
                           type="tel"
                           name="lotUnits"
                           feedbackInvalid="Campo obligatorio"
