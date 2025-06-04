@@ -31,6 +31,8 @@ import { getUUID } from "@quente/common/utils";
 import { setExistsByCode } from "../../reducers/items.reducer";
 import ConfirmDialog from "./../../../../shared/components/ConfirmDialog";
 
+const DEFAULT_PRICE_RATIO_NAME = "Precio 1";
+
 const initPriceRatioUUID = getUUID();
 const itemInitialState = {
   name: "",
@@ -50,6 +52,7 @@ const itemInitialState = {
       multiplicity: "1",
       totalCost: "",
       quantityPerPackage: "1",
+      label: DEFAULT_PRICE_RATIO_NAME, // Default label for the first price ratio
     },
   ],
   expirationControl: [
@@ -93,6 +96,17 @@ function ItemForm(props) {
         };
         delete itemToSet._id;
       } else itemToSet = props.item;
+      if (itemToSet.pricesRatio && itemToSet.pricesRatio.length === 1 && !itemToSet.pricesRatio[0].label) {
+        itemToSet = {
+          ...itemToSet,
+          pricesRatio: [
+            {
+              ...itemToSet.pricesRatio[0],
+              label: DEFAULT_PRICE_RATIO_NAME
+            }
+          ]
+        }
+      }
       setItem(itemToSet);
     }
     dispatch(getItemCategories({ parse: true }));
@@ -138,6 +152,16 @@ function ItemForm(props) {
         priceRatio.cost <= 0 || Number.isNaN(+priceRatio.cost);
       failedValidationsObj["multiplicity" + priceRatio.hash] =
         !priceRatio.multiplicity || Number.isNaN(+priceRatio.multiplicity);
+
+      // Add label validation
+      if (item.pricesRatio.length >= 2) {
+        failedValidationsObj["label" + priceRatio.hash] = !priceRatio.label;
+      } else {
+        // If label is not required (less than 2 price ratios), ensure its validation state regarding emptiness is false (valid)
+        if (failedValidationsObj.hasOwnProperty("label" + priceRatio.hash)) {
+          failedValidationsObj["label" + priceRatio.hash] = false;
+        }
+      }
     });
 
     expirationControl?.forEach((expControl) => {
@@ -155,9 +179,12 @@ function ItemForm(props) {
 
   const save = async () => {
     if (isValidForm()) {
-      props.onSave({
+      const payload = {
         ...item,
-      });
+      };
+      // Explicitly remove syncStatus if it exists at the top level
+      delete payload.syncStatus;
+      props.onSave(payload);
       setItem(itemInitialState);
     }
   };
@@ -225,6 +252,7 @@ function ItemForm(props) {
         pricesRatio: [
           {
             ...newItem,
+            label: DEFAULT_PRICE_RATIO_NAME, // Default label for the first price ratio
             main: newItem.hash,
           },
         ],
@@ -315,6 +343,7 @@ function ItemForm(props) {
       multiplicity: 1,
       totalCost: "",
       quantityPerPackage: "1",
+      label: "", // Added label initialization
     };
   }
 
@@ -473,7 +502,7 @@ function ItemForm(props) {
                               feedbackInvalid="Campo obligatorio"
                               invalid={
                                 failedValidations[
-                                  "measurementUnit" + priceRatio.hash
+                                "measurementUnit" + priceRatio.hash
                                 ]
                               }
                               onChange={(event) =>
@@ -491,6 +520,24 @@ function ItemForm(props) {
                             />
                           </CCol>
                         </CRow>
+                      </CCol>
+                      <CCol xs="12" lg="2">
+                        <FormInput
+                          label="Nombre"
+                          type="text"
+                          name="label"
+                          value={priceRatio.label}
+                          feedbackInvalid="Campo obligatorio"
+                          invalid={failedValidations["label" + priceRatio.hash]}
+                          required={item.pricesRatio.length >= 2}
+                          onChange={(event) =>
+                            handleChangePricesRatio(
+                              event,
+                              priceRatio.hash,
+                              index
+                            )
+                          }
+                        />
                       </CCol>
                       <CCol xs="12" lg="2">
                         <CurrencyFormInput
@@ -511,17 +558,6 @@ function ItemForm(props) {
                               priceRatio.hash,
                               index
                             )
-                          }
-                        />
-                      </CCol>
-                      <CCol xs="12" lg="2">
-                        <CurrencyFormInput
-                          disabled={true}
-                          label="Costo por unidad"
-                          type="tel"
-                          name="cost"
-                          value={
-                            getCostoPorUnidad(priceRatio) || priceRatio.cost
                           }
                         />
                       </CCol>
@@ -554,7 +590,7 @@ function ItemForm(props) {
                           feedbackInvalid="Campo obligatorio"
                           invalid={
                             failedValidations[
-                              "quantityPerPackage" + priceRatio.hash
+                            "quantityPerPackage" + priceRatio.hash
                             ]
                           }
                           onChange={(event) =>
@@ -568,10 +604,7 @@ function ItemForm(props) {
                       </CCol>
                       <CCol
                         xs="12"
-                        lg={{
-                          offset: 0,
-                          span: item.pricesRatio?.length === 1 ? 2 : 1,
-                        }}
+                        lg="1"
                       >
                         <FormInput
                           label="Multiplo"

@@ -64,6 +64,7 @@ function Billing() {
   let [receivedAmount, setReceivedAmount] = useState(0);
   let [total, setTotal] = useState(0);
   let [itemUnits, setItemUnits] = useState({});
+  let [itemPriceRatios, setItemPriceRatios] = useState({});
   let [itemPrices, setItemPrices] = useState(itemsPricesInitialState); //This is used for special beheavior related to global items
   let [paying, setPaying] = useState(false);
   const cargeButtonRef = useRef();
@@ -124,6 +125,7 @@ function Billing() {
         setReceivedAmount(0);
         setTotal(0);
         setItemUnits({});
+        setItemPriceRatios({})
         sendToast(dispatch, { message: "Guardado exitosamente!" });
         setPaying(false);
         setItemPrices(itemsPricesInitialState);
@@ -148,6 +150,11 @@ function Billing() {
       : (itemUnitsAdded[item.code] = 1);
     itemUnitsAdded = { ...itemUnits, ...itemUnitsAdded };
     setItemUnits(itemUnitsAdded);
+    let itemPriceRatioAdded = {};
+    isAdded(item.code)
+      ? (itemPriceRatioAdded[item.code] = itemPriceRatioAdded[item.code])
+      : (itemPriceRatioAdded[item.code] = getMainPrice(item.pricesRatio));
+    setItemPriceRatios(itemPriceRatioAdded)
     const itemsAdded = [...items];
     if (!isAdded(item.code)) {
       const mainPriceRatio = getMainPriceRatio(item.pricesRatio);
@@ -185,6 +192,9 @@ function Billing() {
     if (itemIndex !== -1) itemsArray.splice(itemIndex, 1);
     setItems(itemsArray);
     setItemUnits(itemUnitsAddedArray);
+    const itemPriceRatiosArray = Object.assign([], itemPriceRatios);
+    delete itemPriceRatiosArray[code];
+    setItemPriceRatios(itemPriceRatiosArray)
     calculateTotal(itemsArray, itemUnitsAddedArray);
   };
 
@@ -211,22 +221,26 @@ function Billing() {
     calculateTotal(itemsUpdated, itemUnits);
   };
 
-  const handleChangeMeasurement = ({ target: { value } }, code) => {
+  const handleChangePriceRatio = ({ target: { value } }, code) => {
     const itemToUpdate = items.find((item) => item.code === code);
     const remaingItems = items.filter((item) => item.code !== code);
-    const { price, multiplicity } = itemToUpdate?.pricesRatio?.find(
-      (priceRatio) => priceRatio.measurementUnit === value
-    );
+    const { price, multiplicity, measurementUnit } = itemToUpdate?.pricesRatio?.find(
+      (priceRatio) => priceRatio.hash === value
+    ) || {};
     const itemsUpdated = [
       ...remaingItems,
       {
         ...itemToUpdate,
         price,
-        measurementUnit: value,
+        measurementUnit,
         multiplicity,
       },
     ];
     setItems(itemsUpdated);
+    setItemPriceRatios({
+      ...itemPriceRatios,
+      [code]: value
+    })
     calculateTotal(itemsUpdated, itemUnits);
   };
 
@@ -237,9 +251,6 @@ function Billing() {
   };
 
   const handleSave = async () => {
-    console.log({
-      client: clientSearchComponentRef.current?.getSelected()?._id,
-    });
     if (isReceivedLTTotal) {
       sendToast(dispatch, {
         message: "Revisa el monto recibido y el total",
@@ -333,7 +344,7 @@ function Billing() {
                     <CTableHead>
                       <CTableRow>
                         <CTableHeaderCell colSpan={6}>
-                          Cantidad / Producto / Subtotal
+                          Cantidad / Medida / Producto / Subtotal
                         </CTableHeaderCell>
                       </CTableRow>
                     </CTableHead>
@@ -375,30 +386,32 @@ function Billing() {
                                       }
                                     />
                                   )}
-                                  {pricesRatio.length > 1 && (
-                                    <CFormSelect
-                                      name="measurementUnit"
-                                      value={measurementUnit}
-                                      required
-                                      size="sm"
-                                      onChange={(event) =>
-                                        handleChangeMeasurement(event, code)
-                                      }
-                                      options={[
-                                        ...(pricesRatio?.map(
-                                          ({ measurementUnit }) => ({
-                                            label: measurementUnit,
-                                            value: measurementUnit,
-                                          })
-                                        ) ?? []),
-                                      ]}
-                                    />
-                                  )}
                                 </CCol>
                               </CRow>
                             </CTableDataCell>
-                            <CTableDataCell xs="12">{name}</CTableDataCell>
-                            <CTableDataCell xs="12" className="text-break">
+                            <CTableDataCell xs="12" style={{ verticalAlign: 'middle' }}>{measurementUnit}</CTableDataCell>
+                            <CTableDataCell xs="12" style={{ verticalAlign: 'middle' }}>{name}</CTableDataCell>
+                            <CTableDataCell>
+                              {pricesRatio.length > 1 && (
+                                <CFormSelect
+                                  value={itemPriceRatios[code]}
+                                  required
+                                  size="sm"
+                                  onChange={(event) =>
+                                    handleChangePriceRatio(event, code)
+                                  }
+                                  options={[
+                                    ...(pricesRatio?.map(
+                                      ({ hash, label = '' }) => ({
+                                        label,
+                                        value: hash,
+                                      })
+                                    ) ?? []),
+                                  ]}
+                                />
+                              )}
+                            </CTableDataCell>
+                            <CTableDataCell xs="12" className="text-break" style={{ verticalAlign: 'middle' }}>
                               {isEqualsTo(
                                 code,
                                 REACT_APP_HELADERIA_BARCODE,

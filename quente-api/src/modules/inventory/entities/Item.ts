@@ -21,6 +21,7 @@ class PricesRatio {
     public main: string,
     public multiplicity: number,
     public organizationId: string,
+    public label?: string, // Added new optional label property
   ) {}
 }
 

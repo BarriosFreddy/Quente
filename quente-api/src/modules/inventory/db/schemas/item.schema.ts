@@ -19,6 +19,7 @@ export const itemSchema = new Schema({
       main: String,
       multiplicity: Number,
       organizationId: String,
+      label: String, // Added new optional label property
     },
   ],
   expirationControl: [

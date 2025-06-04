@@ -20,6 +20,7 @@ const ItemCreateSchema: Schema = joi.object({
       organizationId: joi.string().allow(''),
       totalCost: joi.number().required(),
       quantityPerPackage: joi.number().required(),
+      label: joi.string().allow(''), // Added optional label
     }),
   ),
   expirationControl: joi.array().items(
@@ -52,6 +53,7 @@ const ItemUpdateSchema: Schema = joi.object({
       organizationId: joi.string().allow(''),
       totalCost: joi.number(),
       quantityPerPackage: joi.number(),
+      label: joi.string().allow(''), // Added optional label
     }),
   ),
   expirationControl: joi.array().items(
