@@ -43,6 +43,7 @@ import CONSTANTS from "../../../constants";
 import ClientSearchComponent from "./../../../shared/components/client-search-component/ClientSearchComponent";
 import CurrencyFormInput from "@quente/common/shared/components/CurrencyFormInput";
 import { getAllItems } from "./../../inventory/services/items.service";
+import PaymentMethods from "../../../shared/enums/PaymentMethods";
 const { REACT_APP_HELADERIA_BARCODE, REACT_APP_VARIEDAD_BARCODE } = process.env;
 const itemsPricesInitialState = {
   [REACT_APP_HELADERIA_BARCODE]: "",
@@ -62,6 +63,7 @@ function Billing() {
   let [billingData, setBillingData] = useState(null);
   let [items, setItems] = useState([]);
   let [receivedAmount, setReceivedAmount] = useState(0);
+  let [paymentMethod, setPaymentMethod] = useState(PaymentMethods.CASH)
   let [total, setTotal] = useState(0);
   let [itemUnits, setItemUnits] = useState({});
   let [itemPriceRatios, setItemPriceRatios] = useState({});
@@ -125,7 +127,8 @@ function Billing() {
         setReceivedAmount(0);
         setTotal(0);
         setItemUnits({});
-        setItemPriceRatios({})
+        setItemPriceRatios({});
+        setPaymentMethod(PaymentMethods.CASH);
         sendToast(dispatch, { message: "Guardado exitosamente!" });
         setPaying(false);
         setItemPrices(itemsPricesInitialState);
@@ -270,6 +273,7 @@ function Billing() {
     const billingData = {
       createdAt: getDateObject(),
       receivedAmount,
+      paymentMethod,
       billAmount: total,
       items: getItemsData(),
       creationDate: getDateAsString(),
@@ -306,9 +310,7 @@ function Billing() {
   const hanndleReceivedAmount = (receivedAmount) =>
     setReceivedAmount(receivedAmount);
   const handleBack = () => setPaying(false);
-  const handleShowItemsSmScreens = () => {
-    setShowItemsSmScreens(!showItemsSmScreens);
-  };
+  const handleShowItemsSmScreens = () => setShowItemsSmScreens(!showItemsSmScreens);
   const isEqualsTo = (code, ...compareTo) => compareTo.includes(code);
   const handleKeydownPrice = ({ keyCode }) => {
     if ([CONSTANTS.ENTER_KEYCODE, CONSTANTS.TAB_KEYCODE].includes(keyCode))
@@ -475,6 +477,7 @@ function Billing() {
                     <PaymentComp
                       cargeButtonRef={cargeButtonRef}
                       setReceivedAmount={hanndleReceivedAmount}
+                      setPaymentMethod={setPaymentMethod}
                       onBack={handleBack}
                       total={total}
                     />

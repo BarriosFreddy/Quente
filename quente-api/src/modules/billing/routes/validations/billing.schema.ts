@@ -4,6 +4,7 @@ const BillingCreateSchema: Schema = joi.object({
   _id: joi.string(),
   code: joi.string(),
   receivedAmount: joi.number().required(),
+  paymentMethod: joi.string().required(),
   billAmount: joi.number().required(),
   clientId: joi.string().required(),
   items: joi

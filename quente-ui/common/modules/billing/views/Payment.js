@@ -5,11 +5,18 @@ import { CRow, CCol, CContainer, CFormSelect, CButton } from '@coreui/react'
 import { formatCurrency } from '@quente/common/utils'
 import CONSTANTS from '../../../constants'
 import CurrencyFormInput from '@quente/common/shared/components/CurrencyFormInput'
+import PaymentMethods from '@quente/common/shared/enums'
 
 const { ENTER_KEYCODE, TAB_KEYCODE } = CONSTANTS
 
+const FIELDS = {
+  PAYMENT_METHOD: 'paymentMethod',
+  RECEIVED_AMOUNT: 'receivedAmount',
+}
+
 const PaymentComp = (props) => {
   const [receivedAmount, setReceivedAmount] = useState(0)
+  const [paymentMethod, setPaymentMethod] = useState(PaymentMethods.CASH)
   const [receivedAmountInvalid, setReceivedAmountInvalid] = useState(false)
   const [changeAmount, setChangeAmount] = useState(0)
   const receivedAmountInput = useRef()
@@ -18,10 +25,15 @@ const PaymentComp = (props) => {
     focusAndSelectReceivedInput()
   }, [])
 
-  const onChangeField = ({ target: { value } }) => {
-    setReceivedAmount(value)
-    props.setReceivedAmount(value)
-    calculateAmountChange(value)
+  const onChangeField = ({ target: { name, value } }) => {
+    if (name === FIELDS.PAYMENT_METHOD) {
+      setPaymentMethod(value)
+      props.setPaymentMethod(value)
+    } else if (name === FIELDS.RECEIVED_AMOUNT) {
+      setReceivedAmount(value)
+      props.setReceivedAmount(value)
+      calculateAmountChange(value)
+    }
   }
 
   // eslint-disable-next-line no-unused-vars
@@ -68,12 +80,18 @@ const PaymentComp = (props) => {
             MEDIO DE PAGO
           </CCol>
           <CCol lg="8">
-            <CFormSelect name="paymentMethod" size="lg" required options={['EFECTIVO', 'NEQUI']} />
+            <CFormSelect
+              name={FIELDS.PAYMENT_METHOD}
+              value={paymentMethod}
+              onChange={(event) => onChangeField(event)}
+              size="lg"
+              required
+              options={['EFECTIVO', 'NEQUI']} />
           </CCol>
         </CRow>
         <CRow className="mt-4">
           <CCol lg="4" className="fs-5">
-            EFECTIVO
+            DINERO RECIBIDO
           </CCol>
           <CCol lg="8">
             <CurrencyFormInput
@@ -81,7 +99,7 @@ const PaymentComp = (props) => {
               data-testid="receivedAmountId"
               type="number"
               size="lg"
-              name="receivedAmount"
+              name={FIELDS.RECEIVED_AMOUNT}
               feedbackInvalid="El monto recibido no debe ser menor al total"
               invalid={receivedAmountInvalid}
               value={receivedAmount}
@@ -108,6 +126,7 @@ export default PaymentComp
 PaymentComp.propTypes = {
   total: PropTypes.number,
   setReceivedAmount: PropTypes.func,
+  setPaymentMethod: PropTypes.func,
   cargeButtonRef: PropTypes.object,
   onBack: PropTypes.func,
 }

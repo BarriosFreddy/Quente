@@ -4,6 +4,7 @@ export const billingSchema = new Schema({
   code: String,
   billAmount: Number,
   receivedAmount: Number,
+  paymentMethod: String,
   creationDate: String,
   clientId: Types.ObjectId,
   items: [
