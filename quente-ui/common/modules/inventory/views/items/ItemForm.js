@@ -107,6 +107,7 @@ function ItemForm(props) {
           ]
         }
       }
+      itemToSet = normalizePricesRatio(itemToSet);
       setItem(itemToSet);
     }
     dispatch(getItemCategories({ parse: true }));
@@ -179,10 +180,10 @@ function ItemForm(props) {
 
   const save = async () => {
     if (isValidForm()) {
-      const payload = {
+      let payload = {
         ...item,
       };
-      // Explicitly remove syncStatus if it exists at the top level
+      payload = normalizePricesRatio(payload);
       delete payload.syncStatus;
       props.onSave(payload);
       setItem(itemInitialState);
@@ -333,13 +334,31 @@ function ItemForm(props) {
     setItem({ ...item, expirationControl: expirationControlNew });
   };
 
+  function normalizePricesRatio(payload) {
+    const itemClone = JSON.parse(JSON.stringify(payload));
+    if (!itemClone.pricesRatio || !Array.isArray(itemClone.pricesRatio)) return
+    if (itemClone.pricesRatio.length === 1 && !itemClone.pricesRatio[0].hash) {
+      itemClone.pricesRatio[0].hash = getUUID();
+      itemClone.pricesRatio[0].main = itemClone.pricesRatio[0].hash;
+      return itemClone;
+    }
+    itemClone.pricesRatio = itemClone.pricesRatio.map(priceRatio => {
+      const updatedPriceRatio = { ...priceRatio };
+      const uuid = getUUID();
+      updatedPriceRatio.hash = !updatedPriceRatio.hash ? uuid : updatedPriceRatio.hash;
+      return updatedPriceRatio;
+    });
+    return itemClone;
+  }
+
   function getNewItem() {
+    const uuid = getUUID();
     return {
       measurementUnit: "",
       price: "",
       cost: "",
-      hash: getUUID(),
-      main: "",
+      hash: uuid,
+      main: uuid,
       multiplicity: 1,
       totalCost: "",
       quantityPerPackage: "1",
@@ -478,6 +497,13 @@ function ItemForm(props) {
                                 value={priceRatio.hash}
                                 checked={priceRatio.main === priceRatio.hash}
                                 onChange={(event) =>
+                                  handleChangePricesRatio(
+                                    event,
+                                    priceRatio.hash,
+                                    index
+                                  )
+                                }
+                                onClick={(event) =>
                                   handleChangePricesRatio(
                                     event,
                                     priceRatio.hash,
