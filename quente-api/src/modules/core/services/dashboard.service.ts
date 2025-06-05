@@ -34,13 +34,14 @@ export class DashboardService extends BaseService<undefined> {
     itemCategoryService.setTenantId = this.tenantId;
     try {
       // Get data from different services in parallel for better performance
-      const [billings, topSales, items, categories, numberOfBillings] =
+      const [billingsByPaymentMethod, billings, topSales, numberOfBillings, items, categories] =
         await Promise.all([
+          billingService.getBillingsByPaymentMethod(startDate),
           billingService.findGreaterThanDate(startDate),
           billingService.findTopSalesItems(startDate),
+          billingService.countSince(startDate),
           itemService.findAll({ page: 0, size: 0 }),
           itemCategoryService.findAll({ page: 0, size: 0 }),
-          billingService.countSince(startDate),
         ]);
 
       // Calculate total revenue
@@ -77,6 +78,7 @@ export class DashboardService extends BaseService<undefined> {
         topSellingProducts: topSales,
         stockByCategory,
         lowStockItems,
+        billingsByPaymentMethod,
       };
     } catch (error) {
       console.error('Error getting dashboard stats:', error);

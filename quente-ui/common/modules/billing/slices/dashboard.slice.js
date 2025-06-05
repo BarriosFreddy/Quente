@@ -12,7 +12,8 @@ const initialState = {
     billingsByDay: [],
     topSellingProducts: [],
     stockByCategory: [],
-    lowStockItems: []
+    lowStockItems: [],
+    billingsByPaymentMethod: []
   }
 }
 

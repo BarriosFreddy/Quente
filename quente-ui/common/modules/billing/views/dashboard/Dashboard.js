@@ -22,7 +22,7 @@ import {
   CWidgetStatsC,
   CWidgetStatsF,
 } from "@coreui/react";
-import { CChartBar, CChartDoughnut, CChartLine } from "@coreui/react-chartjs";
+import { CChartBar, CChartDoughnut, CChartLine, CChartPie } from "@coreui/react-chartjs";
 import { getStyle, hexToRgba } from "@coreui/utils";
 import CIcon from "@coreui/icons-react";
 import {
@@ -240,7 +240,7 @@ const Dashboard = () => {
           <br />
           {/* Stock by Category Chart */}
           <CRow className="mb-4">
-            <CCol md={6}>
+            <CCol md={4}>
               <CCard className="mb-4">
                 <CCardHeader>
                   <h4>Estado del Inventario por Categoría</h4>
@@ -313,8 +313,100 @@ const Dashboard = () => {
               </CCard>
             </CCol>
 
+            {/* Payment Methods Chart */}
+            <CCol md={4}>
+              <CCard className="mb-4">
+                <CCardHeader>
+                  <h4>
+                    <CIcon icon={cilChartPie} className="text-primary" /> Ventas por Método de Pago
+                  </h4>
+                </CCardHeader>
+                <CCardBody>
+                  <CChartDoughnut
+                    loading={dashboardLoading}
+                    data={{
+                      labels: dashboardStats?.billingsByPaymentMethod?.map(item => item.method) || [],
+                      datasets: [
+                        {
+                          backgroundColor: [
+                            "#3399FF", // Primary - Efectivo
+                            "#41B883", // Success - Transferencia
+                            "#E46651", // Danger - Tarjeta de crédito
+                            "#FFC107", // Warning - Cheque
+                            "#6610F2", // Purple - Otro método
+                            "#20C997", // Teal - Otro método
+                            "#FD7E14", // Orange - Otro método
+                            "#6C757D", // Secondary - Otro método
+                          ],
+                          data: dashboardStats?.billingsByPaymentMethod?.map(item => item.amount) || [],
+                        },
+                      ],
+                    }}
+                    options={{
+                      plugins: {
+                        tooltip: {
+                          callbacks: {
+                            label: function(context) {
+                              const label = context.label || '';
+                              const value = formatCurrency(context.raw);
+                              const dataset = context.dataset;
+                              const total = dataset.data.reduce((acc, data) => acc + data, 0);
+                              const percentage = Math.round((context.raw / total) * 100);
+                              return `${label}: ${value} (${percentage}%)`;
+                            }
+                          }
+                        }
+                      }
+                    }}
+                  />
+                  <div className="mt-4">
+                    {dashboardStats?.billingsByPaymentMethod?.map((method, index) => (
+                      <div key={index} className="mb-2">
+                        <div className="d-flex justify-content-between">
+                          <div>{method.method}</div>
+                          <div>
+                            <strong>{formatCurrency(method.amount)}</strong>{" "}
+                            ({method.count} facturaciones)
+                          </div>
+                        </div>
+                        <CProgress className="progress-xs">
+                          <CProgressBar
+                            color={
+                              index % 8 === 0
+                                ? "primary"
+                                : index % 8 === 1
+                                ? "success"
+                                : index % 8 === 2
+                                ? "danger"
+                                : index % 8 === 3
+                                ? "warning"
+                                : index % 8 === 4
+                                ? "info"
+                                : index % 8 === 5
+                                ? "dark"
+                                : index % 8 === 6
+                                ? "secondary"
+                                : "light"
+                            }
+                            value={Math.min(
+                              100,
+                              Math.round(
+                                (method.amount /
+                                  (dashboardStats.totalRevenue || 1)) *
+                                  100
+                              )
+                            )}
+                          />
+                        </CProgress>
+                      </div>
+                    ))}
+                  </div>
+                </CCardBody>
+              </CCard>
+            </CCol>
+            
             {/* Low Stock Items Widget */}
-            <CCol md={6}>
+            <CCol md={4}>
               <CCard className="mb-4">
                 <CCardHeader>
                   <h4>
@@ -323,7 +415,7 @@ const Dashboard = () => {
                   </h4>
                 </CCardHeader>
                 <CCardBody>
-                  <CTable hover responsive small>
+                  <CTable hover responsive small style={{ fontSize: '0.85rem' }}>
                     <CTableHead>
                       <CTableRow>
                         <CTableHeaderCell>Código</CTableHeaderCell>

@@ -10,6 +10,7 @@ import { getStatsPipeline } from './stats.aggregate';
 import { billingSchema } from '../db/schemas/billing.schema';
 import { SequencedCode } from '../entities/SequencedCode';
 import { getTopSalesItems } from './top-sales.aggregate';
+import { getBillingsByPaymentMethod } from './billingsByPaymentMethod.aggregate';
 dayjs.extend(utc);
 
 const kardexTransactionService = container.resolve(KardexTransactionService);
@@ -30,6 +31,19 @@ export class BillingService extends BaseService<Billing> {
       .skip(10 * (page - 1))
       .limit(10)
       .sort({ 'createdAt.date': -1 })
+      .exec();
+    return billings;
+  }
+  async getBillingsByPaymentMethod(date: string): Promise<any[]> {
+    const startDate = dayjs(date)
+      .set('hours', 0)
+      .set('minutes', 0)
+      .set('seconds', 0)
+      .utcOffset(-5)
+      .toDate()
+      .getTime();
+    const billings: any[] = await this.getModel()
+      .aggregate(getBillingsByPaymentMethod(startDate))
       .exec();
     return billings;
   }
