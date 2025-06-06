@@ -15,6 +15,7 @@ const loading = (
 const DefaultLayout = React.lazy(() => import('src/layout/DefaultLayout'))
 
 // Pages
+const LandingPage = React.lazy(() => import('@quente/common/pages/landing/LandingPage'))
 const Login = React.lazy(() => import('@quente/common/pages/login/Login'))
 const Register = React.lazy(() => import('@quente/common/pages/register/Register'))
 //const Page404 = React.lazy(() => import('@quente/common/pages/page404/Page404'))
@@ -40,6 +41,14 @@ const App = () => {
   }, [])
 
   const router = createBrowserRouter([
+    {
+      path: '/',
+      element: (
+        <React.Suspense fallback={loading}>
+          <LandingPage />
+        </React.Suspense>
+      ),
+    },
     {
       path: '/login',
       element: (

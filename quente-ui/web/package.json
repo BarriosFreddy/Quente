@@ -38,6 +38,7 @@
     "eslint-plugin-jsx-a11y": "^6.7.1",
     "hexoid": "^2.0.0",
     "is-online": "^10.0.0",
+    "lucide-react": "^0.513.0",
     "moment": "^2.29.4",
     "prop-types": "^15.8.1",
     "quagga": "^0.12.1",
