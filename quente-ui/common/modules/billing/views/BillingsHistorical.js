@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import isOnline from "is-online";
 import {
@@ -18,13 +18,17 @@ import {
   CCardHeader,
 } from "@coreui/react";
 import { formatCurrency, formatDate } from "@quente/common/utils";
-import { getBillings } from "./../../../modules/billing/services/billings.service";
+import { getBillings, updateBillingStatus } from "./../../../modules/billing/services/billings.service";
+import BillingStatus from "../../../shared/enums/BillingStatus";
 import { setBillings } from "./../../../modules/billing/reducers/billings.reducer";
 import { Helmet } from "react-helmet";
 import CIcon from "@coreui/icons-react";
-import { cilArrowLeft, cilPrint, cilZoom } from "@coreui/icons";
+import { cilArrowLeft, cilPrint, cilTrash, cilZoom } from "@coreui/icons";
 import { PDFViewer } from "@react-pdf/renderer";
 import BillingTemplate from "./print-templates/BillingTemplate";
+import ConfirmDialog from "../../../shared/components/ConfirmDialog";
+import { useDidUpdateControl } from "@quente/common/hooks/useDidUpdateControl";
+import { sendToast } from "@quente/common/shared/services/notification.service";
 
 export const { LISTING, DETAILING, PRINTING } = {
   LISTING: "L",
@@ -33,15 +37,35 @@ export const { LISTING, DETAILING, PRINTING } = {
 };
 
 function BillingsHistorical() {
+  const confirmDialogRef = useRef();
   const dispatch = useDispatch();
   const billings = useSelector((state) => state.billing.billings);
   const { organization } = useSelector((state) => state.auth.infoUser) ?? {};
   const billingsOffline = useSelector(
     (state) => state.billing.offline.billings
   );
+  const saving = useSelector((state) => state.billing.saving);
+  const saveSuccess = useSelector((state) => state.billing.saveSuccess);
   let [billing, setBilling] = useState(null);
   let [page, setPage] = useState(1);
   let [currentAction, setCurrentAction] = useState(LISTING);
+  let [isUpdating, setIsUpdating] = useState(false);
+  const [billingToCancel, setBillingToCancel] = useState(null);
+
+  useDidUpdateControl(
+    () => {
+      if (saveSuccess) {
+        sendToast(dispatch, { message: "Factura cancelada exitosamente!" });
+        return
+      }
+      sendToast(dispatch, {
+        message: "No se pudo cancelar la factura",
+        color: "danger",
+      });
+    },
+    saving,
+    [saveSuccess]
+  );
   useEffect(() => {
     dispatch(getBillings());
   }, [dispatch]);
@@ -80,6 +104,30 @@ function BillingsHistorical() {
   const handleBack = () => {
     setBilling(null);
     setCurrentAction(LISTING);
+  };
+
+
+  const handleCancel = (billing) => {
+    setBillingToCancel(billing);
+    confirmDialogRef.current.show(true);
+  };
+
+  const handleResponseCancelBilling = async (sureCancel) => {
+    if (sureCancel) {
+      setIsUpdating(true);
+      try {
+        await dispatch(updateBillingStatus(billingToCancel._id, BillingStatus.CANCELED));
+
+        // If we're in the detail view, update the current billing
+        setBilling({ ...billingToCancel, status: BillingStatus.CANCELED });
+        confirmDialogRef.current.show(false);
+        dispatch(getBillings());
+      } catch (error) {
+        console.error('Error updating billing status:', error);
+      } finally {
+        setIsUpdating(false);
+      }
+    }
   };
 
   return (
@@ -169,6 +217,7 @@ function BillingsHistorical() {
                                 N° de productos
                               </CTableHeaderCell>
                               <CTableHeaderCell>Total</CTableHeaderCell>
+                              <CTableHeaderCell>Estado</CTableHeaderCell>
                               <CTableHeaderCell>&nbsp;</CTableHeaderCell>
                             </CTableRow>
                           </CTableHead>
@@ -194,6 +243,13 @@ function BillingsHistorical() {
                                     {formatCurrency(billing.billAmount)}
                                   </CTableDataCell>
                                   <CTableDataCell xs="12">
+                                    {billing.status === BillingStatus.APPROVED ? (
+                                      <span className="text-success">APROBADA</span>
+                                    ) : (
+                                      <span className="text-danger">CANCELADA</span>
+                                    )}
+                                  </CTableDataCell>
+                                  <CTableDataCell xs="12">
                                     <CButton
                                       size="sm"
                                       variant="outline"
@@ -213,6 +269,19 @@ function BillingsHistorical() {
                                       <CIcon icon={cilPrint} size="sm" />
                                       &nbsp; Imprimir
                                     </CButton>
+                                    &nbsp;
+                                    {billing.status !== BillingStatus.CANCELED && (
+                                      <CButton
+                                        size="sm"
+                                        variant="outline"
+                                        color="danger"
+                                        onClick={() => handleCancel(billing)}
+                                        disabled={isUpdating || saving}
+                                      >
+                                        <CIcon icon={cilTrash} size="sm" />
+                                        &nbsp; Cancelar
+                                      </CButton>
+                                    )}
                                   </CTableDataCell>
                                 </CTableRow>
                               ))}
@@ -276,6 +345,31 @@ function BillingsHistorical() {
                           </CTableDataCell>
                         </CTableRow>
                         <CTableRow>
+                          <CTableHeaderCell>Estado</CTableHeaderCell>
+                          <CTableDataCell colSpan={4}>
+                            {billing.status === BillingStatus.APPROVED ? (
+                              <>
+                                <span className="text-success">APROBADA</span>
+                                {billing.status === BillingStatus.APPROVED && (
+                                  <CButton
+                                    size="sm"
+                                    variant="outline"
+                                    color="danger"
+                                    onClick={() => handleCancel(billing)}
+                                    disabled={isUpdating}
+                                    className="ms-3"
+                                  >
+                                    <CIcon icon={cilTrash} size="sm" />
+                                    &nbsp; Cancelar
+                                  </CButton>
+                                )}
+                              </>
+                            ) : (
+                              <span className="text-danger">CANCELADA</span>
+                            )}
+                          </CTableDataCell>
+                        </CTableRow>
+                        <CTableRow>
                           <CTableHeaderCell colSpan={5}>Items</CTableHeaderCell>
                         </CTableRow>
                         {billing.items?.map(
@@ -313,6 +407,11 @@ function BillingsHistorical() {
           </CCardBody>
         </CCard>
       </CContainer>
+      <ConfirmDialog
+        ref={confirmDialogRef}
+        onResponse={handleResponseCancelBilling}
+        message="¿Estás seguro que quieres cancelar esta factura?"
+      ></ConfirmDialog>
     </>
   );
 }

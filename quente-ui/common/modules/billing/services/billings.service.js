@@ -136,3 +136,46 @@ function getLocally(dispatch, state) {
   dispatch(setBillings(billings));
   return { data: billings, status: 200 };
 }
+
+/**
+ * Update the status of a billing
+ * @param {string} id - The ID of the billing to update
+ * @param {string} status - The new status (APPROVED or CANCELED)
+ * @returns {Function} - Redux thunk action
+ */
+export const updateBillingStatus = (id, status) => async (dispatch, getState, api) => {
+  dispatch(setSaving(true));
+  try {
+    const isonline = await isOnline();
+    if (isonline) {
+      const { data, status: responseStatus } = await api.patch(`/billings/${id}/status`, { status });
+      
+      if (responseStatus === 200) {
+        // Update the billing in the Redux store
+        const currentBillings = getState().billing.billings;
+        const updatedBillings = currentBillings.map(billing => 
+          billing._id === id ? { ...billing, status } : billing
+        );
+        
+        dispatch(setBillings(updatedBillings));
+        dispatch(setSaveSuccess(!!data._id));
+        return data;
+      }
+    } else {
+      // Offline mode: Update local billings
+      const currentBillings = getState().billing.billings;
+      const updatedBillings = currentBillings.map(billing => 
+        billing._id === id ? { ...billing, status } : billing
+      );
+      
+      dispatch(setBillings(updatedBillings));
+      dispatch(setSaveSuccess(true));
+    }
+  } catch (error) {
+    console.error("Error updating billing status:", error);
+    dispatch(setSaveSuccess(false));
+    return null;
+  } finally {
+    dispatch(setSaving(false));
+  }
+};

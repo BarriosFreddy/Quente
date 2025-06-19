@@ -87,6 +87,16 @@ export const ApiService = {
       }),
     )
   },
+  async patch(uri, data) {
+    return await retry(() =>
+      axiosInstance({
+        url: uri,
+        method: 'PATCH',
+        withCredentials: true,
+        data,
+      }),
+    )
+  },
   // Check if server is reachable
   async checkConnection() {
     try {

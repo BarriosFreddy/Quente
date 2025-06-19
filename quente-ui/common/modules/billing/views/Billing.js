@@ -44,6 +44,7 @@ import ClientSearchComponent from "./../../../shared/components/client-search-co
 import CurrencyFormInput from "@quente/common/shared/components/CurrencyFormInput";
 import { getAllItems } from "./../../inventory/services/items.service";
 import PaymentMethods from "../../../shared/enums/PaymentMethods";
+import BillingStatus from "../../../shared/enums/BillingStatus";
 const { REACT_APP_HELADERIA_BARCODE, REACT_APP_VARIEDAD_BARCODE } = process.env;
 const itemsPricesInitialState = {
   [REACT_APP_HELADERIA_BARCODE]: "",
@@ -290,6 +291,7 @@ function Billing() {
         id: currentUser?.id,
         name: currentUser?.name,
       },
+      status: BillingStatus.APPROVED,
     };
     setBillingData(billingData);
     !!REACT_APP_UI && (await window.electronAPI.setData(billingData));

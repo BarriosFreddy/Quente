@@ -2,6 +2,7 @@ import { BillingService } from '../../services/billing.service';
 import { Request, Response } from 'express';
 import { container } from 'tsyringe';
 import { Billing } from '../../entities/Billing';
+import { BillingStatus } from '../../db/schemas/billing.schema';
 import { setTenantIdToService } from '../../../../helpers/util';
 import { SequencedCodeService } from '../../services/sequenced-code.service';
 
@@ -60,6 +61,35 @@ class BillingController {
       billings,
     );
     res.status(201).send(result);
+  }
+
+  async updateStatus(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      
+      // Validate the status is one of our defined enum values
+      if (!Object.values(BillingStatus).includes(status)) {
+        res.status(400).json({ 
+          message: 'Invalid status. Must be either APPROVED or CANCELED' 
+        });
+        return;
+      }
+      const updatedBilling = await setTenantIdToService(res, billingService).updateStatus(
+        id,
+        status as BillingStatus
+      );
+
+      if (!updatedBilling) {
+        res.status(404).json({ message: 'Billing not found' });
+        return;
+      }
+
+      res.status(200).json(updatedBilling);
+    } catch (error) {
+      console.error('Error updating billing status:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
   }
 }
 

@@ -1,5 +1,11 @@
 import { Schema, Types } from 'mongoose';
 
+// Status values for billing
+export enum BillingStatus {
+  APPROVED = 'APPROVED',
+  CANCELED = 'CANCELED',
+}
+
 export const billingSchema = new Schema({
   code: String,
   billAmount: Number,
@@ -43,5 +49,11 @@ export const billingSchema = new Schema({
   updatedAt: {
     type: Date,
     default: null,
+  },
+  // Status field - APPROVED by default
+  status: {
+    type: String,
+    enum: Object.values(BillingStatus),
+    default: BillingStatus.APPROVED,
   },
 });

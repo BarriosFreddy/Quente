@@ -48,4 +48,12 @@ billingRouter.get(
 );
 billingRouter.get('/', isAuthenticated, billingController.findAll);
 
+billingRouter.patch(
+  '/:id/status',
+  validateParameters(idSchema),
+  isAuthenticated,
+  roleValidation(generateAuthKeyPair(ModuleCode.BILLING, Privilege.UPDATE)),
+  billingController.updateStatus,
+);
+
 export default billingRouter;

@@ -7,7 +7,7 @@ import { KardexTransactionService } from '../../inventory/services/kardex-transa
 import { KardexTransactionType } from '../../inventory/entities/enums/kardex-transaction-type';
 import { Billing } from '../entities/Billing';
 import { getStatsPipeline } from './stats.aggregate';
-import { billingSchema } from '../db/schemas/billing.schema';
+import { billingSchema, BillingStatus } from '../db/schemas/billing.schema';
 import { SequencedCode } from '../entities/SequencedCode';
 import { getTopSalesItems } from './top-sales.aggregate';
 import { getBillingsByPaymentMethod } from './billingsByPaymentMethod.aggregate';
@@ -176,6 +176,32 @@ export class BillingService extends BaseService<Billing> {
       .find({ 'createdAt.date': { $gte: startDate } })
       .countDocuments();
     return billingsCount;
+  }
+
+  /**
+   * Update the status of a billing
+   * @param id The ID of the billing to update
+   * @param status The new status (APPROVED or CANCELED)
+   * @returns The updated billing document
+   */
+  async updateStatus(id: string, status: BillingStatus): Promise<Billing | null> {
+    try {
+      const billing = await this.getModel().findById(id);
+      
+      if (!billing) {
+        return null;
+      }
+      
+      // Update the status and updatedAt fields
+      billing.status = status;
+      billing.updatedAt = new Date();
+      
+      await billing.save();
+      return billing;
+    } catch (error) {
+      console.error('Error updating billing status:', error);
+      return null;
+    }
   }
 }
 

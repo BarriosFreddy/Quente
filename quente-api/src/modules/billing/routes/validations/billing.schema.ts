@@ -1,4 +1,5 @@
 import joi, { Schema } from 'joi';
+import { BillingStatus } from '../../db/schemas/billing.schema';
 
 const BillingCreateSchema: Schema = joi.object({
   _id: joi.string(),
@@ -38,6 +39,7 @@ const BillingCreateSchema: Schema = joi.object({
     date: joi.number(),
     offset: joi.number(),
   }),
+  status: joi.string().valid(...Object.values(BillingStatus)).default(BillingStatus.APPROVED),
 });
 
 export { BillingCreateSchema };
