@@ -1,20 +1,30 @@
 import React from 'react'
 import { CFormInput } from '@coreui/react'
 import { PropTypes } from 'prop-types'
+import { safelySetSelectionRange, transformInputValue } from '../../utils/inputHelpers'
 
-const FormInput = (props) => {
+const FormInput = React.forwardRef((props, ref) => {
+  
   const handleChange = (event) => {
-    const {
-      target: { value },
-    } = event
-    const { selectionStart, selectionEnd } = event.target
-    if (props.uppercase && value) event.target.value = value.toUpperCase()
-    if (props.lowercase && value) event.target.value = value.toLowerCase()
-    event.target.setSelectionRange && event.target.setSelectionRange(selectionStart, selectionEnd)
-    props.onChange(event)
+    const { target } = event
+    const { value, selectionStart, selectionEnd } = target
+    
+    if (props.uppercase || props.lowercase) {
+      target.value = transformInputValue({
+        value,
+        uppercase: props.uppercase,
+        lowercase: props.lowercase
+      })
+      
+      safelySetSelectionRange(target, selectionStart, selectionEnd)
+    }
+    
+    props.onChange && props.onChange(event)
   }
-  return <CFormInput {...props} size={props.size || 'sm'} onChange={handleChange} />
-}
+  return <CFormInput {...props} ref={ref} size={props.size || 'sm'} onChange={handleChange} />
+})
+
+FormInput.displayName = 'FormInput'
 
 export default FormInput
 

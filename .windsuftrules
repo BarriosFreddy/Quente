@@ -1,0 +1,17 @@
+# Backend Code Structure
+- The main backend application is in quente-api/src.
+
+
+# Core System Components
+
+
+# Frontend Code Structure
+- The main frontend application is in quente-ui/web.
+
+
+# Testing & Debugging
+# - End-to-end tests for Cascade are in tests/e2e/cascade_tests.
+# - Mock API responses for local testing are in tests/mocks/api_mocks.py.
+# - Debugging scripts are located in scripts/debugging_tools.
+
+Don't put redundant comments. Just put relevant comments to explain the logic, whether it's necessary.

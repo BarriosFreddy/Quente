@@ -133,6 +133,7 @@ function ItemForm(props) {
       code,
       description,
       categoryId,
+      reorderPoint,
       pricesRatio,
       expirationControl,
     } = {
@@ -143,16 +144,19 @@ function ItemForm(props) {
     failedValidationsObj.description = !description;
     failedValidationsObj.name = !name;
     failedValidationsObj.categoryId = !categoryId;
+    failedValidationsObj.reorderPoint = reorderPoint <= 0 || Number.isNaN(+reorderPoint);
 
     pricesRatio?.forEach((priceRatio) => {
       failedValidationsObj["measurementUnit" + priceRatio.hash] =
         !priceRatio.measurementUnit;
       failedValidationsObj["price" + priceRatio.hash] =
         priceRatio.price <= 0 || Number.isNaN(+priceRatio.price);
-      failedValidationsObj["cost" + priceRatio.hash] =
-        priceRatio.cost <= 0 || Number.isNaN(+priceRatio.cost);
+      failedValidationsObj["totalCost" + priceRatio.hash] =
+        priceRatio.totalCost <= 0 || Number.isNaN(+priceRatio.totalCost);
       failedValidationsObj["multiplicity" + priceRatio.hash] =
-        !priceRatio.multiplicity || Number.isNaN(+priceRatio.multiplicity);
+        priceRatio.multiplicity <= 0 || Number.isNaN(+priceRatio.multiplicity);
+      failedValidationsObj["quantityPerPackage" + priceRatio.hash] =
+        priceRatio.quantityPerPackage <= 0 || Number.isNaN(+priceRatio.quantityPerPackage);
 
       // Add label validation
       if (item.pricesRatio.length >= 2) {
@@ -166,16 +170,15 @@ function ItemForm(props) {
     });
 
     expirationControl?.forEach((expControl) => {
+      failedValidationsObj["lotUnits" + expControl.id] = !expControl.lotUnits || !Number.isFinite(+expControl.lotUnits);
       failedValidationsObj["lot" + expControl.id] = !expControl.lot;
-      failedValidationsObj["lotUnits" + expControl.id] =
-        expControl.lotUnits < 0 || Number.isNaN(+expControl.lotUnits);
-      failedValidationsObj["expirationDate" + expControl.id] =
-        !expControl.expirationDate;
+      failedValidationsObj["expirationDate" + expControl.id] = !expControl.expirationDate;
     });
     setFailedValidations(failedValidationsObj);
-    return Object.values(failedValidationsObj).every(
+    let isValid = Object.values(failedValidationsObj).every(
       (validation) => validation === false
     );
+    return isValid;
   };
 
   const save = async () => {
@@ -448,16 +451,6 @@ function ItemForm(props) {
                 </CCol>
                 <CCol xs="12" lg="3">
                   <FormInput
-                    label="Fabricante (Opcional)"
-                    type="text"
-                    uppercase="true"
-                    name="laboratory"
-                    value={item.laboratory}
-                    onChange={(event) => handleChangeField(event)}
-                  />
-                </CCol>
-                <CCol xs="12" lg="3">
-                  <FormInput
                     label="Punto de recompra"
                     type="tel"
                     min={1}
@@ -465,6 +458,16 @@ function ItemForm(props) {
                     value={item.reorderPoint}
                     invalid={failedValidations.reorderPoint}
                     feedbackInvalid="Campo obligatorio"
+                    onChange={(event) => handleChangeField(event)}
+                  />
+                </CCol>
+                <CCol xs="12" lg="3">
+                  <FormInput
+                    label="Fabricante (Opcional)"
+                    type="text"
+                    uppercase="true"
+                    name="laboratory"
+                    value={item.laboratory}
                     onChange={(event) => handleChangeField(event)}
                   />
                 </CCol>
