@@ -1,8 +1,8 @@
 import { Schema, Types } from 'mongoose';
 
 export const itemSchema = new Schema({
-  code: String,
-  name: String,
+  code: { type: String, required: true, unique: true },
+  name: { type: String, required: true },
   description: String,
   sku: String,
   reorderPoint: Number, // lowest point to alert and reorder it
