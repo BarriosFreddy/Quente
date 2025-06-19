@@ -12,7 +12,7 @@ export const saveItem = (item) => async (dispatch, _, api) => {
   try {
     dispatch(setSaving(true));
     const savedItem = await db.saveItem(item, api);
-    dispatch(saveSuccess(!!savedItem));
+    dispatch(saveSuccess(!!savedItem._id));
   } catch (error) {
     console.error("Error saving item:", error);
     dispatch(saveSuccess(false));
@@ -25,7 +25,7 @@ export const updateItem = (item) => async (dispatch, _, api) => {
   try {
     dispatch(setSaving(true));
     const updatedItem = await db.saveItem(item, api);
-    dispatch(saveSuccess(!!updatedItem));
+    dispatch(saveSuccess(!!updatedItem._id));
   } catch (error) {
     console.error("Error updating item:", error);
     dispatch(saveSuccess(false));
