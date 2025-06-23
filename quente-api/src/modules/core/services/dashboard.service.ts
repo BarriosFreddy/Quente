@@ -5,6 +5,7 @@ import { ItemCategoryService } from '../../inventory/services/item-category.serv
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import { BaseService } from '../../../helpers/abstracts/base.service';
+import { BillingStatus } from '../../billing/db/schemas/billing.schema';
 
 dayjs.extend(utc);
 
@@ -32,13 +33,14 @@ export class DashboardService extends BaseService<undefined> {
     billingService.setTenantId = this.tenantId;
     itemService.setTenantId = this.tenantId;
     itemCategoryService.setTenantId = this.tenantId;
+    const status = [BillingStatus.APPROVED, undefined];
     try {
       // Get data from different services in parallel for better performance
       const [billingsByPaymentMethod, billings, topSales, numberOfBillings, items, categories] =
         await Promise.all([
-          billingService.getBillingsByPaymentMethod(startDate),
-          billingService.findGreaterThanDate(startDate),
-          billingService.findTopSalesItems(startDate),
+          billingService.getBillingsByPaymentMethod({date: startDate, status}),
+          billingService.findGreaterThanDate({date: startDate, status}),
+          billingService.findTopSalesItems({date: startDate, status }),
           billingService.countSince(startDate),
           itemService.findAll({ page: 0, size: 0 }),
           itemCategoryService.findAll({ page: 0, size: 0 }),

@@ -1,11 +1,14 @@
 import { PipelineStage } from 'mongoose';
 
-export const getBillingsByPaymentMethod = (startDate: number): PipelineStage[] => [
+export type BillingsByPaymentMethodProps = { startDate: number, status?: Array<string | undefined> }
+
+export const getBillingsByPaymentMethod = ({ startDate, status }: BillingsByPaymentMethodProps): PipelineStage[] => [
   {
     $match: {
       'createdAt.date': {
         $gte: startDate,
       },
+      status: { $in: status || [undefined] },
     },
   },
   {

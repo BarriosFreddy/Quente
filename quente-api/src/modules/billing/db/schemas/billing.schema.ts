@@ -4,6 +4,7 @@ import { Schema, Types } from 'mongoose';
 export enum BillingStatus {
   APPROVED = 'APPROVED',
   CANCELED = 'CANCELED',
+  
 }
 
 export const billingSchema = new Schema({

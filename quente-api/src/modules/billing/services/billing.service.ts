@@ -34,7 +34,7 @@ export class BillingService extends BaseService<Billing> {
       .exec();
     return billings;
   }
-  async getBillingsByPaymentMethod(date: string): Promise<any[]> {
+  async getBillingsByPaymentMethod({date, status}: {date: string, status?: Array<string | undefined>}): Promise<any[]> {
     const startDate = dayjs(date)
       .set('hours', 0)
       .set('minutes', 0)
@@ -43,11 +43,11 @@ export class BillingService extends BaseService<Billing> {
       .toDate()
       .getTime();
     const billings: any[] = await this.getModel()
-      .aggregate(getBillingsByPaymentMethod(startDate))
+      .aggregate(getBillingsByPaymentMethod({startDate, status}))
       .exec();
     return billings;
   }
-  async findGreaterThanDate(date: string): Promise<Billing[]> {
+  async findGreaterThanDate({date, status}: {date: string, status?: Array<string | undefined>}): Promise<Billing[]> {
     const startDate = dayjs(date)
       .set('hours', 0)
       .set('minutes', 0)
@@ -56,11 +56,11 @@ export class BillingService extends BaseService<Billing> {
       .toDate()
       .getTime();
     const billings: Billing[] = await this.getModel()
-      .aggregate(getStatsPipeline(startDate))
+      .aggregate(getStatsPipeline({startDate, status}))
       .exec();
     return billings;
   }
-  async findTopSalesItems(date: string): Promise<Billing[]> {
+  async findTopSalesItems({date, status}: {date: string, status?: Array<string | undefined>}): Promise<Billing[]> {
     const startDate = dayjs(date)
       .set('hours', 0)
       .set('minutes', 0)
@@ -69,7 +69,7 @@ export class BillingService extends BaseService<Billing> {
       .toDate()
       .getTime();
     const billings: Billing[] = await this.getModel()
-      .aggregate(getTopSalesItems(startDate))
+      .aggregate(getTopSalesItems({startDate, status}))
       .exec();
     return billings;
   }

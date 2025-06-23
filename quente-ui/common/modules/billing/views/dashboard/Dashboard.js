@@ -51,38 +51,25 @@ const SALES_DAYS = [
 
 const Dashboard = () => {
   const dispatch = useDispatch();
-  const billingsGraph = useSelector((state) => state.billing.billingsGraph);
-  const billingTopSales = useSelector((state) => state.billing.billingTopSales);
   const dashboardStats = useSelector((state) => state.dashboard.stats);
   const dashboardLoading = useSelector((state) => state.dashboard.loading);
   const [days, setDays] = useState(0);
   const tenDaysBefore = dayjs().subtract(days, "days").format("YYYY-MM-DD");
 
   useEffect(() => {
-    dispatch(getBillingsGTDate(tenDaysBefore));
-    dispatch(getBillingTopSales(tenDaysBefore));
     dispatch(getDashboardStats(tenDaysBefore));
   }, [dispatch, tenDaysBefore]);
 
-  const labels = billingsGraph
-    ? billingsGraph.map(({ createdAt }) => createdAt)
-    : [];
-  const data = billingsGraph
-    ? billingsGraph.map(({ billAmount }) => billAmount)
-    : [];
-  const topSalesLabels = billingTopSales
-    ? billingTopSales.map(({ name }) => name)
-    : [];
-  const topSalesData = billingTopSales
-    ? billingTopSales.map(({ sales }) => sales)
-    : [];
-  const dataReversed = [...billingsGraph].reverse();
+  const labels = dashboardStats?.billingsByDay.map(({ createdAt }) => createdAt) || [];
+  const data = dashboardStats?.billingsByDay.map(({ billAmount }) => billAmount) || [];
+  const topSalesLabels = dashboardStats?.topSellingProducts.map(({ name }) => name) || [];
+  const topSalesData = dashboardStats?.topSellingProducts.map(({ sales }) => sales) || [];
+  const dataReversed = [...dashboardStats?.billingsByDay].reverse();
+  const categoryLabels = dashboardStats?.stockByCategory?.map((cat) => cat.name) || [];
+  const categoryData = dashboardStats?.stockByCategory?.map((cat) => cat.stock) || [];
 
-  // Extract stock by category data for the doughnut chart
-  const categoryLabels =
-    dashboardStats?.stockByCategory?.map((cat) => cat.name) || [];
-  const categoryData =
-    dashboardStats?.stockByCategory?.map((cat) => cat.stock) || [];
+  console.log({ dashboardStats });
+  
   return (
     <>
       <Helmet>
@@ -318,7 +305,7 @@ const Dashboard = () => {
               <CCard className="mb-4">
                 <CCardHeader>
                   <h4>
-                    <CIcon icon={cilChartPie} className="text-primary" /> Ventas por Método de Pago
+                    Ventas por Método de Pago
                   </h4>
                 </CCardHeader>
                 <CCardBody>
@@ -410,8 +397,7 @@ const Dashboard = () => {
               <CCard className="mb-4">
                 <CCardHeader>
                   <h4>
-                    <CIcon icon={cilWarning} className="text-warning" /> Artículos con
-                    Poco Inventario
+                    Artículos con poco inventario
                   </h4>
                 </CCardHeader>
                 <CCardBody>

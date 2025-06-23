@@ -1,11 +1,12 @@
 import { PipelineStage } from 'mongoose';
 
-export const getTopSalesItems = (startDate: number): PipelineStage[] => [
+export const getTopSalesItems = ({startDate, status}: {startDate: number, status?: Array<string | undefined>}): PipelineStage[] => [
   {
     $match: {
       'createdAt.date': {
         $gte: startDate,
       },
+      status: { $in: status || [undefined] },
     },
   },
   {

@@ -31,7 +31,9 @@ class BillingRepository {
       .toArray();
     const filteredBillings = billings.filter((billing) => {
       const createdAtTimestamp = billing.createdAt?.date;
-      return createdAtTimestamp && createdAtTimestamp >= startDate;
+      // Filter by date AND billing status (include APPROVED or no status, exclude CANCELED)
+      return createdAtTimestamp && createdAtTimestamp >= startDate && 
+             (billing.status === undefined || billing.status !== 'CANCELED');
     });
     const salesMap = {};
     filteredBillings.forEach((b) => {
@@ -68,7 +70,9 @@ class BillingRepository {
 
     const filteredBillings = billings.filter((billing) => {
       const createdAtTimestamp = billing.createdAt?.date;
-      return createdAtTimestamp && createdAtTimestamp >= startDate;
+      // Filter by date AND billing status (include APPROVED or no status, exclude CANCELED)
+      return createdAtTimestamp && createdAtTimestamp >= startDate && 
+             (billing.status === undefined || billing.status !== 'CANCELED');
     });
 
     const salesMap = {};
