@@ -69,7 +69,7 @@ export const getBillings =
     try {
       const isonline = await isOnline();
       if (isonline) {
-        const { data, status } = await api.get(`/billings?size=1000`);
+        const { data, status } = await api.get(`/billings?page=${page}`);
         if (status === 200) dispatch(setBillings(data));
       } else {
         const localData = await billingsRepository.find({ page });
