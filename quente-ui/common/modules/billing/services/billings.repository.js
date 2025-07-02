@@ -17,6 +17,90 @@ class BillingRepository {
   async find({ page = 1, size = 10 }) {
     return this.db.find(this.#collectionName, { page, size });
   }
+  
+  /**
+   * Find billings with filters support for offline mode
+   * @param {Object} options - Filter options
+   * @param {number} options.page - Page number
+   * @param {number} options.limit - Items per page
+   * @param {string} options.fromDate - Start date (YYYY-MM-DD)
+   * @param {string} options.toDate - End date (YYYY-MM-DD)
+   * @param {string} options.status - Billing status
+   * @param {number} options.minAmount - Minimum amount
+   * @param {number} options.maxAmount - Maximum amount
+   * @param {string} options.code - Billing code (partial match)
+   * @returns {Promise<Object>} - Filtered billings with pagination info
+   */
+  async findWithFilters({
+    page = 1,
+    limit = 10,
+    fromDate = null,
+    toDate = null,
+    status = null,
+    minAmount = null,
+    maxAmount = null,
+    code = null
+  } = {}) {
+    // Get all billings from IndexedDB
+    const allBillings = await this.db.getCollection(this.#collectionName).toArray();
+    
+    // Apply filters
+    const filteredBillings = allBillings.filter(billing => {
+      let matches = true;
+      
+      // Date range filter
+      if (fromDate) {
+        const fromDateTimestamp = dayjs(fromDate).startOf('day').utcOffset(TIME_ZONE).valueOf();
+        matches = matches && billing.createdAt?.date >= fromDateTimestamp;
+      }
+      
+      if (toDate) {
+        const toDateTimestamp = dayjs(toDate).endOf('day').utcOffset(TIME_ZONE).valueOf();
+        matches = matches && billing.createdAt?.date <= toDateTimestamp;
+      }
+      
+      // Status filter
+      if (status) {
+        matches = matches && billing.status === status;
+      }
+      
+      // Amount range filter
+      if (minAmount !== null) {
+        matches = matches && billing.total >= minAmount;
+      }
+      
+      if (maxAmount !== null) {
+        matches = matches && billing.total <= maxAmount;
+      }
+      
+      // Code filter (case insensitive partial match)
+      if (code) {
+        matches = matches && billing.code && billing.code.toLowerCase().includes(code.toLowerCase());
+      }
+      
+      return matches;
+    });
+    
+    // Sort by creation date (newest first)
+    filteredBillings.sort((a, b) => {
+      const dateA = a.createdAt?.date || 0;
+      const dateB = b.createdAt?.date || 0;
+      return dateB - dateA;
+    });
+    
+    // Apply pagination
+    const start = (page - 1) * limit;
+    const end = start + limit;
+    const paginatedBillings = filteredBillings.slice(start, end);
+    
+    // Return with pagination info
+    return {
+      data: paginatedBillings,
+      page,
+      totalPages: Math.ceil(filteredBillings.length / limit),
+      total: filteredBillings.length
+    };
+  }
 
   /**
    *

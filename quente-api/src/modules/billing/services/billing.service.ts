@@ -25,14 +25,85 @@ export class BillingService extends BaseService<Billing> {
   async findOne(id: string): Promise<Billing | null> {
     return await this.getModel().findById(id).exec();
   }
-  async findAll({ page = 1 }): Promise<Billing[]> {
-    const billings: Billing[] = await this.getModel()
-      .find()
-      .skip(10 * (page - 1))
-      .limit(10)
-      .sort({ 'createdAt.date': -1 })
-      .exec();
-    return billings;
+  // Override base method to support filtering
+  async findAll(filter: any): Promise<Billing[]> {
+    const { page = 1, filters = {} } = filter;
+    const result = await this.findAllWithFilters({ page, filters });
+    return result.data;
+  }
+
+  /**
+   * Get paginated billings with filter support
+   */
+  async findAllWithFilters({ page = 1, filters = {} }: { page: number; filters?: any }): Promise<{ data: Billing[]; total: number; page: number; totalPages: number }> {
+    const limit = 10;
+    const skip = limit * (page - 1);
+    
+    // Build query object based on filters
+    const query: any = {};
+    
+    // Apply date range filter
+    if (filters.dateRange) {
+      query['createdAt.date'] = {};
+      let fromDateValue = null;
+      let toDateValue = null;
+      
+      // Process fromDate if provided
+      if (filters.dateRange.fromDate) {
+        fromDateValue = dayjs(filters.dateRange.fromDate)
+          .set('hours', 0)
+          .set('minutes', 0)
+          .set('seconds', 0)
+          .utcOffset(-5);
+          
+        const fromDate = fromDateValue.toDate().getTime();
+        query['createdAt.date'].$gte = fromDate;
+      }
+      
+      // Process toDate if provided
+      if (filters.dateRange.toDate) {
+        toDateValue = dayjs(filters.dateRange.toDate)
+          .set('hours', 23)
+          .set('minutes', 59)
+          .set('seconds', 59)
+          .utcOffset(-5);
+          
+        const toDate = toDateValue.toDate().getTime();
+        query['createdAt.date'].$lte = toDate;
+      }
+      
+      // Validate date range if both dates are provided
+      if (fromDateValue && toDateValue && toDateValue.isBefore(fromDateValue, 'day')) {
+        throw new Error('La fecha final debe ser mayor o igual a la fecha inicial');
+      }
+    }
+    
+    // Apply status filter
+    if (filters.status) {
+      query.status = filters.status;
+    }
+    // Apply code filter (case-insensitive partial match)
+    if (filters.code) {
+      query.code = { $regex: new RegExp(filters.code, 'i') };
+    }
+    
+    // Execute query with pagination
+    const [billings, total] = await Promise.all([
+      this.getModel()
+        .find(query)
+        .skip(skip)
+        .limit(limit)
+        .sort({ 'createdAt.date': -1 })
+        .exec(),
+      this.getModel().countDocuments(query)
+    ]);
+    
+    return {
+      data: billings,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit)
+    }
   }
   async getBillingsByPaymentMethod({date, status}: {date: string, status?: Array<string | undefined>}): Promise<any[]> {
     const startDate = dayjs(date)

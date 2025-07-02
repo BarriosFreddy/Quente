@@ -62,17 +62,90 @@ export const saveBillingBulk =
     }
   };
 
+// Cache for billing results to improve navigation performance
+let billingsCache = new Map();
+
+/**
+ * Generate a cache key based on filter parameters
+ * @param {object} params - Filter parameters
+ * @returns {string} Cache key
+ */
+const generateCacheKey = (params) => {
+  return JSON.stringify(params);
+};
+
+/**
+ * Clear the billings cache
+ */
+export const clearBillingsCache = () => {
+  billingsCache.clear();
+};
+
+/**
+ * Get billings with filter support and caching
+ */
 export const getBillings =
-  ({ page = 1 } = {}) =>
+  ({ 
+    page = 1, 
+    fromDate = null, 
+    toDate = null, 
+    status = null, 
+    code = null,
+    useCache = true
+  } = {}) =>
   async (dispatch, getState, api) => {
     dispatch(setFetching(true));
+    
     try {
+      // Build filter parameters object
+      const params = { page };
+      if (fromDate) params.fromDate = fromDate;
+      if (toDate) params.toDate = toDate;
+      if (status) params.status = status;
+      if (code) params.code = code;
+      
+      // Generate cache key based on parameters
+      const cacheKey = generateCacheKey(params);
+      
       const isonline = await isOnline();
+      
       if (isonline) {
-        const { data, status } = await api.get(`/billings?page=${page}`);
-        if (status === 200) dispatch(setBillings(data));
+        // Check cache first if useCache is true
+        if (useCache && billingsCache.has(cacheKey)) {
+          dispatch(setBillings(billingsCache.get(cacheKey)));
+          dispatch(setFetching(false));
+          return;
+        }
+        
+        // Convert to URL query params
+        const queryParams = new URLSearchParams(params).toString();
+        
+        const { data, status } = await api.get(`/billings?${queryParams}`);
+        if (status === 200) {
+          // Ensure data is always an array before dispatching
+          const billingsArray = Array.isArray(data) ? data : [];
+          dispatch(setBillings(billingsArray));
+          
+          // Store in cache
+          if (useCache) {
+            billingsCache.set(cacheKey, data);
+            
+            // Limit cache size to prevent memory issues
+            if (billingsCache.size > 20) {
+              const oldestKey = billingsCache.keys().next().value;
+              billingsCache.delete(oldestKey);
+            }
+          }
+        }
       } else {
-        const localData = await billingsRepository.find({ page });
+        // Offline mode with filter support
+        const localData = await billingsRepository.findWithFilters({
+          page,
+          fromDate,
+          toDate, 
+          status,
+          code
+        });
         if (localData) dispatch(setBillings(localData));
       }
     } catch (error) {

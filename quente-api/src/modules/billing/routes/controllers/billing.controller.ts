@@ -11,11 +11,39 @@ const sequenceCodeService = container.resolve(SequencedCodeService);
 
 class BillingController {
   async findAll(req: Request, res: Response) {
-    let { page = 1 } = req.query;
+    let { 
+      page = 1,
+      fromDate,
+      toDate,
+      status,
+      code
+    } = req.query;
     page = +page;
+    
+    // Build filter object
+    const filters: any = {};
+    
+    // Date range filter
+    if (fromDate || toDate) {
+      filters.dateRange = {
+        fromDate: fromDate as string,
+        toDate: toDate as string
+      };
+    }
+    
+    // Status filter
+    if (status) {
+      filters.status = status as string;
+    }
+    // Code filter
+    if (code) {
+      filters.code = code as string;
+    }
+    
     await setTenantIdToService(res, sequenceCodeService);
     const bills = await setTenantIdToService(res, billingService).findAll({
       page,
+      filters
     });
     res.status(200).send(bills);
   }

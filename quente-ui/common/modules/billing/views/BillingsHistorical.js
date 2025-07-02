@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import isOnline from "is-online";
 import {
@@ -16,14 +16,20 @@ import {
   CTableHead,
   CTableHeaderCell,
   CCardHeader,
+  CCollapse,
+  CFormLabel,
+  CFormInput,
+  CFormSelect,
+  CInputGroup,
+  CInputGroupText,
 } from "@coreui/react";
 import { formatCurrency, formatDate } from "@quente/common/utils";
-import { getBillings, updateBillingStatus } from "./../../../modules/billing/services/billings.service";
+import { getBillings, updateBillingStatus, clearBillingsCache } from "./../../../modules/billing/services/billings.service";
 import BillingStatus from "../../../shared/enums/BillingStatus";
 import { setBillings } from "./../../../modules/billing/reducers/billings.reducer";
 import { Helmet } from "react-helmet";
 import CIcon from "@coreui/icons-react";
-import { cilArrowLeft, cilPrint, cilTrash, cilZoom } from "@coreui/icons";
+import { cilArrowLeft, cilPrint, cilTrash, cilZoom, cilFilter, cilFilterX } from "@coreui/icons";
 import { PDFViewer } from "@react-pdf/renderer";
 import BillingTemplate from "./print-templates/BillingTemplate";
 import ConfirmDialog from "../../../shared/components/ConfirmDialog";
@@ -39,18 +45,36 @@ export const { LISTING, DETAILING, PRINTING } = {
 function BillingsHistorical() {
   const confirmDialogRef = useRef();
   const dispatch = useDispatch();
-  const billings = useSelector((state) => state.billing.billings);
+  // Get billings from Redux store with a default empty array for safety
+  const billings = useSelector((state) => state.billing.billings || []);
   const { organization } = useSelector((state) => state.auth.infoUser) ?? {};
   const billingsOffline = useSelector(
     (state) => state.billing.offline.billings
   );
   const saving = useSelector((state) => state.billing.saving);
   const saveSuccess = useSelector((state) => state.billing.saveSuccess);
+  const fetching = useSelector((state) => state.billing.fetching);
+  
+  // State management
   let [billing, setBilling] = useState(null);
   let [page, setPage] = useState(1);
   let [currentAction, setCurrentAction] = useState(LISTING);
   let [isUpdating, setIsUpdating] = useState(false);
   const [billingToCancel, setBillingToCancel] = useState(null);
+  
+  // Filter panel state
+  const [filterVisible, setFilterVisible] = useState(false);
+  const [filters, setFilters] = useState({
+    fromDate: '',
+    toDate: '',
+    status: '',
+    code: ''
+  });
+  
+  // Active filters indicator
+  const hasActiveFilters = useMemo(() => {
+    return Object.values(filters).some(val => val !== '');
+  }, [filters]);
 
   useDidUpdateControl(
     () => {
@@ -66,6 +90,69 @@ function BillingsHistorical() {
     saving,
     [saveSuccess]
   );
+  // Handle filter changes
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilters(prev => ({ ...prev, [name]: value }));
+  };
+  
+  // Apply filters
+  const applyFilters = () => {
+    setPage(1); // Reset to first page when filtering
+    
+    // Validate date range if both dates are provided
+    if (filters.fromDate && filters.toDate) {
+      // Use UTC dates for consistent comparison
+      const fromDate = new Date(filters.fromDate);
+      const toDate = new Date(filters.toDate);
+      
+      // Reset time part for date-only comparison
+      fromDate.setUTCHours(0, 0, 0, 0);
+      toDate.setUTCHours(0, 0, 0, 0);
+      
+      if (toDate < fromDate) {
+        sendToast(dispatch, {
+          message: "La fecha final debe ser mayor o igual a la fecha inicial",
+          color: "danger",
+        });
+        return;
+      }
+    }
+    
+    // Ensure dates are in proper format with timezone handling
+    const filterParams = {
+      page: 1,
+      status: filters.status || null,
+      code: filters.code || null,
+      // Only include date filters if they have values
+      fromDate: filters.fromDate ? filters.fromDate : null, 
+      toDate: filters.toDate ? filters.toDate : null,
+      // Force cache refresh when applying filters
+      useCache: false
+    };
+    
+    dispatch(getBillings(filterParams));
+  };
+  
+  // Clear all filters
+  const clearFilters = () => {
+    setFilters({
+      fromDate: '',
+      toDate: '',
+      status: '',
+      code: ''
+    });
+    setPage(1);
+    clearBillingsCache(); // Clear the cache when resetting filters
+    dispatch(getBillings({ page: 1 }));
+  };
+  
+  // Toggle filter panel visibility
+  const toggleFilterPanel = () => {
+    setFilterVisible(!filterVisible);
+  };
+  
+  // Load billings on component mount
   useEffect(() => {
     dispatch(getBillings());
   }, [dispatch]);
@@ -79,16 +166,27 @@ function BillingsHistorical() {
     })();
   }, [dispatch, billingsOffline]);
 
+  // Helper function to create filter parameters for consistency
+  const getFilterParams = (pageNum) => {
+    return {
+      page: pageNum,
+      status: filters.status || null,
+      code: filters.code || null,
+      fromDate: filters.fromDate || null,
+      toDate: filters.toDate || null
+    };
+  };
+
   const handlePrevPage = async () => {
     const newPage = page === 1 ? 1 : page - 1;
     setPage(newPage);
-    dispatch(getBillings({ page: newPage }));
+    dispatch(getBillings(getFilterParams(newPage)));
   };
 
   const handleNextPage = async () => {
     const newPage = page + 1;
     setPage(newPage);
-    dispatch(getBillings({ page: newPage }));
+    dispatch(getBillings(getFilterParams(newPage)));
   };
 
   const handleDetail = (billing) => {
@@ -139,7 +237,7 @@ function BillingsHistorical() {
         <CCard className="shadow border-10">
           <CCardHeader>
             <CRow>
-              <CCol xs="2" lg="4">
+              <CCol xs="2" lg="3">
                 {[DETAILING, PRINTING].includes(currentAction) && (
                   <CButton
                     variant="outline"
@@ -152,11 +250,24 @@ function BillingsHistorical() {
                     </div>
                   </CButton>
                 )}
+                
+                {currentAction === LISTING && (
+                  <CButton
+                    variant="outline"
+                    color={hasActiveFilters ? "success" : "info"}
+                    onClick={toggleFilterPanel}
+                  >
+                    <div className="d-none d-lg-block">{filterVisible ? 'Ocultar Filtros' : 'Filtros'}</div>
+                    <div className="d-lg-none">
+                      <CIcon icon={filterVisible ? cilFilterX : cilFilter} size="sm" />
+                    </div>
+                  </CButton>
+                )}
               </CCol>
-              <CCol xs="8" lg="4" className="text-center">
+              <CCol xs="8" lg="6" className="text-center">
                 HISTORIAL
               </CCol>
-              <CCol xs="2" lg="4" className="text-end">
+              <CCol xs="2" lg="3" className="text-end">
                 {[DETAILING].includes(currentAction) && (
                   <CButton
                     variant="outline"
@@ -169,17 +280,98 @@ function BillingsHistorical() {
                     </div>
                   </CButton>
                 )}
+                
+                {currentAction === LISTING && hasActiveFilters && (
+                  <CButton
+                    variant="outline"
+                    color="danger"
+                    onClick={clearFilters}
+                  >
+                    <div className="d-none d-lg-block">Limpiar</div>
+                    <div className="d-lg-none">
+                      <CIcon icon={cilFilterX} size="sm" />
+                    </div>
+                  </CButton>
+                )}
               </CCol>
             </CRow>
           </CCardHeader>
           <CCardBody>
             <CContainer className="mt--6" fluid>
+              {/* Filter Panel - Collapsible */}
+              {currentAction === LISTING && (
+                <CCollapse visible={filterVisible}>
+                  <CCard className="mb-4 shadow-sm border-0">
+                    <CCardBody>
+                      <h6 className="mb-3">Filtros de Búsqueda</h6>
+                      <CRow className="g-3">
+                        {/* Date Range Filter */}
+                        <CCol xs="12" md="6" lg="3">
+                          <CFormLabel>Desde</CFormLabel>
+                          <CFormInput
+                            type="date"
+                            name="fromDate"
+                            value={filters.fromDate}
+                            onChange={handleFilterChange}
+                          />
+                        </CCol>
+                        <CCol xs="12" md="6" lg="3">
+                          <CFormLabel>Hasta</CFormLabel>
+                          <CFormInput
+                            type="date"
+                            name="toDate"
+                            value={filters.toDate}
+                            onChange={handleFilterChange}
+                          />
+                        </CCol>
+                        
+                        {/* Status Filter */}
+                        <CCol xs="12" md="6" lg="3">
+                          <CFormLabel>Estado</CFormLabel>
+                          <CFormSelect
+                            name="status"
+                            value={filters.status}
+                            onChange={handleFilterChange}
+                          >
+                            <option value="">Todos</option>
+                            <option value={BillingStatus.APPROVED}>Aprobado</option>
+                            <option value={BillingStatus.CANCELED}>Cancelado</option>
+                          </CFormSelect>
+                        </CCol>
+                        
+                        {/* Code Filter */}
+                        <CCol xs="12" md="6" lg="3">
+                          <CFormLabel>Código</CFormLabel>
+                          <CFormInput
+                            type="text"
+                            name="code"
+                            value={filters.code}
+                            onChange={handleFilterChange}
+                            placeholder="Buscar por código"
+                          />
+                        </CCol>
+                        
+                        {/* Apply Filters Button */}
+                        <CCol xs="12" className="d-flex justify-content-end mt-3">
+                          <CButton 
+                            color="primary" 
+                            onClick={applyFilters}
+                            disabled={fetching}
+                          >
+                            {fetching ? 'Aplicando...' : 'Aplicar Filtros'}
+                          </CButton>
+                        </CCol>
+                      </CRow>
+                    </CCardBody>
+                  </CCard>
+                </CCollapse>
+              )}
               <CRow>
                 {currentAction === LISTING && (
                   <CCol>
                     <>
                       <div className="d-lg-none">
-                        {billings &&
+                        {Array.isArray(billings) && billings.length > 0 ?
                           billings.map((billing, index) => (
                             <CCard
                               key={index}
@@ -192,6 +384,9 @@ function BillingsHistorical() {
                             >
                               <CCardBody>
                                 <CRow className="g-0">
+                                  <CCol xs="4">
+                                    <h6>Fecha:</h6>
+                                  </CCol>
                                   <CCol xs="8">
                                     <CRow>{formatDate(billing.createdAt)}</CRow>
                                     <CRow>{billing.code}</CRow>
@@ -199,13 +394,16 @@ function BillingsHistorical() {
                                       Productos: {billing.items?.length}
                                     </CRow>
                                   </CCol>
-                                  <CCol xs="4" className="text-end fw-bold">
-                                    {formatCurrency(billing.billAmount)}
+                                  <CCol xs="8">
+                                    {formatCurrency(billing.total)}
                                   </CCol>
                                 </CRow>
                               </CCardBody>
                             </CCard>
-                          ))}
+                          ))
+                          : 
+                          <div className="text-center p-4">No hay facturas para mostrar</div>
+                        }
                       </div>
                       <div className="d-none d-lg-block">
                         <CTable hover>
@@ -218,11 +416,11 @@ function BillingsHistorical() {
                               </CTableHeaderCell>
                               <CTableHeaderCell>Total</CTableHeaderCell>
                               <CTableHeaderCell>Estado</CTableHeaderCell>
-                              <CTableHeaderCell>&nbsp;</CTableHeaderCell>
+                              <CTableHeaderCell>Acciones</CTableHeaderCell>
                             </CTableRow>
                           </CTableHead>
                           <CTableBody>
-                            {billings &&
+                            {Array.isArray(billings) && billings.length > 0 ? 
                               billings.map((billing, index) => (
                                 <CTableRow key={index}>
                                   <CTableDataCell
@@ -231,25 +429,25 @@ function BillingsHistorical() {
                                   >
                                     {formatDate(billing.createdAt)}
                                   </CTableDataCell>
-                                  <CTableDataCell className="fs-6" xs="12">
+                                  <CTableDataCell className="fs-6">
                                     {billing.code
                                       ? billing.code
                                       : "No Disponible"}
                                   </CTableDataCell>
-                                  <CTableDataCell xs="12">
+                                  <CTableDataCell>
                                     {billing.items?.length}
                                   </CTableDataCell>
-                                  <CTableDataCell xs="12">
-                                    {formatCurrency(billing.billAmount)}
+                                  <CTableDataCell>
+                                    {formatCurrency(billing.total || billing.billAmount)}
                                   </CTableDataCell>
-                                  <CTableDataCell xs="12">
+                                  <CTableDataCell>
                                     {billing.status === BillingStatus.APPROVED ? (
                                       <span className="text-success">APROBADA</span>
                                     ) : (
                                       <span className="text-danger">CANCELADA</span>
                                     )}
                                   </CTableDataCell>
-                                  <CTableDataCell xs="12">
+                                  <CTableDataCell>
                                     <CButton
                                       size="sm"
                                       variant="outline"
@@ -284,7 +482,15 @@ function BillingsHistorical() {
                                     )}
                                   </CTableDataCell>
                                 </CTableRow>
-                              ))}
+                              ))
+                              : (
+                                <CTableRow>
+                                  <CTableDataCell colSpan="6" className="text-center p-4">
+                                    No hay facturas para mostrar
+                                  </CTableDataCell>
+                                </CTableRow>
+                              )
+                            }
                           </CTableBody>
                         </CTable>
                       </div>
