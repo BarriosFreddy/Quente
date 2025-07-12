@@ -67,6 +67,7 @@ const generateTestToken = () => {
       roles: ['ADMIN', 'SELLER'],
       organization: {},
     },
+    type: 'access'
   };
   const secret = SECRET_KEY as string;
   return jwt.sign(payload, secret, { expiresIn: '1h' });

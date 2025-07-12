@@ -3,6 +3,7 @@ import * as coreRouter from './modules/core/routes/index';
 import * as billingRouter from './modules/billing/routes/index';
 import * as inventoryRouter from './modules/inventory/routes/index';
 import * as clientRouter from './modules/clients/routes/index';
+import layawayRouter from './modules/layaway/routes/index';
 import healthRouter from './modules/core/routes/health.routes';
 import syncRouter from './modules/core/routes/sync.routes';
 import dashboardRouter from './modules/core/routes/dashboard.routes';
@@ -46,6 +47,9 @@ export function registerRoutes(app: Express): void {
 
   // Client routes
   apiRouter.use('/clients', clientRouter.itemRouter);
+
+  // Layaway (Plan Separe) routes
+  apiRouter.use('/layaways', layawayRouter);
 
   app.use('/api/v1', apiRouter);
 }
