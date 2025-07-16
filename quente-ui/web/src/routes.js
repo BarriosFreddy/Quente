@@ -23,6 +23,7 @@ const Kardex = lazy(() => import('@quente/common/modules/inventory/views/kardex/
 const PurchaseOrder = lazy(() =>
   import('@quente/common/modules/inventory/views/purchase-order/PurchaseOrder'),
 )
+const Layaways = lazy(() => import('@quente/common/modules/layaway/views/Layaways'))
 
 // Admin module components
 const AdminModule = lazy(() => import('./views/admin/AdminModule'))
@@ -40,6 +41,7 @@ const routes = [
   { path: '/inventory-kardex', name: 'Kardex', element: Kardex },
   { path: '/inventory-purchase-orders', name: 'Purchase order', element: PurchaseOrder },
   { path: '/clients', name: 'Clients', element: Clients },
+  { path: '/layaways', name: 'Layaways', element: Layaways },
 
   // Admin module routes
   { path: '/admin/*', name: 'Administración', element: AdminModule },

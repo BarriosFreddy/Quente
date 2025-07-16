@@ -5,6 +5,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import PropTypes from "prop-types";
 import CIcon from "@coreui/icons-react";
 import { cilPlus } from "@coreui/icons";
 import "./clientSearchComponent.css";
@@ -30,8 +31,6 @@ import {
 } from "./../../../modules/client/services/clients.service";
 import Client from "./../../../modules/client/views/clients/Clients";
 
-const DEFAULT_CLIENT_DNI = "1111111111";
-
 const ClientSearchComponent = forwardRef(function ClientSearchComponent(
   props,
   ref
@@ -47,8 +46,9 @@ const ClientSearchComponent = forwardRef(function ClientSearchComponent(
   let [showClientModal, setShowClientModal] = useState(false);
 
   useEffect(() => {
-    dispatch(getClientByDNI(DEFAULT_CLIENT_DNI));
-  }, [dispatch]);
+    if (props.defaultValue)
+      dispatch(getClientByDNI(props.defaultValue));
+  }, [dispatch, props.defaultValue]);
   useEffect(() => {
     setClientSelected(defaultClient);
   }, [defaultClient]);
@@ -60,6 +60,13 @@ const ClientSearchComponent = forwardRef(function ClientSearchComponent(
         getSelected() {
           return clientSelected;
         },
+        setSelected(client) {
+          setClientSelected(client);
+        },
+        clear() {
+          setClientSelected(null);
+        },
+
       };
     },
     [clientSelected]
@@ -80,6 +87,7 @@ const ClientSearchComponent = forwardRef(function ClientSearchComponent(
     setIsSearching(false);
     setShowList(false);
     setClientSelected(client);
+    props.onSelect && props.onSelect(client);
   };
 
   const handleClickLabel = () => {
@@ -208,3 +216,8 @@ const ClientSearchComponent = forwardRef(function ClientSearchComponent(
 });
 
 export default ClientSearchComponent;
+
+ClientSearchComponent.propTypes = {
+  onSelect: PropTypes.func,
+  defaultValue: PropTypes.string,
+};

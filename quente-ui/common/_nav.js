@@ -51,6 +51,13 @@ let _nav = [
     ],
   },
   {
+    component: CNavItem,
+    name: 'Plan separe',
+    to: '/layaways',
+    icon: <CIcon icon={cilChartLine} customClassName="nav-icon" />,
+    roles: ['ADMIN', 'SELLER'],
+  },
+  {
     component: CNavGroup,
     name: 'Inventario',
     icon: <CIcon icon={cilInbox} customClassName="nav-icon" />,
