@@ -33,6 +33,10 @@ const mockLayawayPaymentService = {
   findByLayawayId: jest.fn()
 };
 
+const mockModuleService = {
+  findByCode: jest.fn()
+}
+
 // Mock the tsyringe container
 jest.mock('tsyringe', () => ({
   singleton: () => (target: any) => target,
@@ -45,6 +49,9 @@ jest.mock('tsyringe', () => ({
       }
       if (token === 'LayawayPaymentService' || (typeof token === 'function' && token.name === 'LayawayPaymentService')) {
         return mockLayawayPaymentService;
+      }
+      if (token === 'ModuleService' || (typeof token === 'function' && token.name === 'ModuleService')) {
+        return mockModuleService;
       }
       return {};
     }),
@@ -186,6 +193,34 @@ describe('Layaway API Integration Tests', () => {
     });
     
     mockLayawayPaymentService.findByLayawayId.mockResolvedValue([mockPayment]);
+    
+    mockModuleService.findByCode.mockResolvedValue({
+      "_id": "63c5d63fefc6faadaa4a203f",
+      "name": "Facturación",
+      "uri": "/billing",
+      "icon": "billing",
+      "createdAt": "15/01/2023",
+      "updatedAt": "15/01/2023",
+      "code": "BILLING",
+      "access": [
+        {
+          "roleCode": "ADMIN",
+          "canAccess": true,
+          "canCreate": true,
+          "canUpdate": true,
+          "canDelete": true,
+          "canExecute": true
+        },
+        {
+          "roleCode": "SELLER",
+          "canAccess": true,
+          "canCreate": true,
+          "canUpdate": false,
+          "canDelete": false,
+          "canExecute": false
+        }
+      ]
+    });
   });
 
   beforeEach(() => {
@@ -246,7 +281,6 @@ describe('Layaway API Integration Tests', () => {
         totalAmount: 1000,
         initialPayment: 200,
         expectedDeliveryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-        clientId: MOCK_IDS.client,
         client: {
           id: MOCK_IDS.client,
           name: 'Test Client'
@@ -256,10 +290,8 @@ describe('Layaway API Integration Tests', () => {
             _id: MOCK_IDS.item,
             code: 'ITEM-001',
             name: 'Test Item',
-            description: 'Test Description',
             price: 1000,
             units: 1,
-            measurementUnit: 'unit'
           }
         ],
         createdBy: {
@@ -360,10 +392,10 @@ describe('Layaway API Integration Tests', () => {
       };
       
       const response = await request(app)
-        .put(`/layaways/${MOCK_IDS.layaway}/status`)
+        .patch(`/layaways/${MOCK_IDS.layaway}/status`)
         .set('Cookie', [`access_token=${token}`])
         .send(statusUpdate);
-      
+
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('status', LayawayStatus.DELIVERED);
     });
@@ -376,7 +408,7 @@ describe('Layaway API Integration Tests', () => {
       };
       
       const response = await request(app)
-        .put(`/layaways/${MOCK_IDS.layaway}/status`)
+        .patch(`/layaways/${MOCK_IDS.layaway}/status`)
         .set('Cookie', [`access_token=${token}`])
         .send(statusUpdate);
       
@@ -392,7 +424,7 @@ describe('Layaway API Integration Tests', () => {
       };
       
       const response = await request(app)
-        .put(`/layaways/${MOCK_IDS.layaway}/status`)
+        .patch(`/layaways/${MOCK_IDS.layaway}/status`)
         .set('Cookie', [`access_token=${token}`])
         .send(statusUpdate);
       
@@ -406,7 +438,7 @@ describe('Layaway API Integration Tests', () => {
       };
       
       const response = await request(app)
-        .put(`/layaways/${MOCK_IDS.layaway}/status`)
+        .patch(`/layaways/${MOCK_IDS.layaway}/status`)
         .set('Cookie', [`access_token=${token}`])
         .send(statusUpdate);
       

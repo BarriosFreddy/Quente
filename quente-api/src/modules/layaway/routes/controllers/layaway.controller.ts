@@ -1,16 +1,19 @@
 import { Request, Response } from 'express';
 import { container } from 'tsyringe';
-import { LayawayService } from '../services/layaway.service';
-import { LayawayPaymentService } from '../services/layaway-payment.service';
-import { LayawayStatus } from '../db/schemas/layaway.schema';
+import { LayawayService } from '../../services/layaway.service';
+import { LayawayPaymentService } from '../../services/layaway-payment.service';
+import { LayawayStatus } from '../../db/schemas/layaway.schema';
+import { setTenantIdToService } from '../../../../helpers/util';
 
 const layawayService = container.resolve(LayawayService);
 const layawayPaymentService = container.resolve(LayawayPaymentService);
 
+
 export const createLayaway = async (req: Request, res: Response) => {
   try {
     const layawayData = req.body;
-    const layaway = await layawayService.create(layawayData);
+    await setTenantIdToService(res, layawayPaymentService)
+    const layaway = await setTenantIdToService(res, layawayService).create(layawayData);
     
     return res.status(201).json(layaway);
   } catch (error) {
@@ -27,7 +30,7 @@ export const getLayaways = async (req: Request, res: Response) => {
     const { page = 1, ...filters } = req.query;
     const pageNum = parseInt(page as string, 10);
     
-    const result = await layawayService.findAllWithFilters({ 
+    const result = await setTenantIdToService(res, layawayService).findAllWithFilters({ 
       page: pageNum, 
       filters 
     });
@@ -45,7 +48,7 @@ export const getLayaways = async (req: Request, res: Response) => {
 export const getLayawayById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const layaway = await layawayService.findOne(id);
+    const layaway = await setTenantIdToService(res, layawayService).findOne(id);
     
     if (!layaway) {
       return res.status(404).json({ 
@@ -68,7 +71,7 @@ export const addPayment = async (req: Request, res: Response) => {
     const { id } = req.params;
     const paymentData = req.body;
     
-    const updatedLayaway = await layawayService.addPayment(id, paymentData);
+    const updatedLayaway = await setTenantIdToService(res, layawayService).addPayment(id, paymentData);
     
     return res.status(200).json(updatedLayaway);
   } catch (error) {
@@ -83,7 +86,7 @@ export const addPayment = async (req: Request, res: Response) => {
 export const getLayawayPayments = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const payments = await layawayPaymentService.findByLayawayId(id);
+    const payments = await setTenantIdToService(res, layawayPaymentService).findByLayawayId(id);
     
     return res.status(200).json(payments);
   } catch (error) {
@@ -105,7 +108,7 @@ export const updateLayawayStatus = async (req: Request, res: Response) => {
     // Handle different status updates
     switch (status) {
       case LayawayStatus.DELIVERED:
-        updatedLayaway = await layawayService.markAsDelivered(id);
+        updatedLayaway = await setTenantIdToService(res, layawayService).markAsDelivered(id);
         break;
       case LayawayStatus.CANCELED:
         if (!reason) {
@@ -113,7 +116,7 @@ export const updateLayawayStatus = async (req: Request, res: Response) => {
             message: 'Se requiere una razón para cancelar el plan separe' 
           });
         }
-        updatedLayaway = await layawayService.cancel(id, reason);
+        updatedLayaway = await setTenantIdToService(res, layawayService).cancel(id, reason);
         break;
       default:
         return res.status(400).json({ 

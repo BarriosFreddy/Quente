@@ -20,11 +20,6 @@ export const createLayawaySchema = Joi.object({
       'date.base': 'La fecha estimada de entrega debe ser una fecha válida',
       'any.required': 'La fecha estimada de entrega es requerida'
     }),
-  clientId: Joi.string().required()
-    .messages({
-      'string.base': 'El ID del cliente debe ser una cadena',
-      'any.required': 'El ID del cliente es requerido'
-    }),
   client: Joi.object({
     id: Joi.string().required(),
     name: Joi.string().required()
@@ -38,14 +33,8 @@ export const createLayawaySchema = Joi.object({
       _id: Joi.string().required(),
       code: Joi.string().required(),
       name: Joi.string().required(),
-      description: Joi.string().allow('', null),
       price: Joi.number().required(),
       units: Joi.number().integer().min(1).required(),
-      measurementUnit: Joi.string().allow('', null),
-      multiplicity: Joi.number().integer().min(1),
-      lot: Joi.string().allow('', null),
-      expirationDate: Joi.string().allow('', null),
-      laboratory: Joi.string().allow('', null),
     })
   ).min(1).required()
     .messages({

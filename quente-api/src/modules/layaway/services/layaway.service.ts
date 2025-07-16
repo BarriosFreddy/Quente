@@ -28,12 +28,6 @@ export class LayawayService extends BaseService<Layaway> {
   async findOne(id: string): Promise<Layaway | null> {
     return await this.getModel().findById(id).exec();
   }
-  
-  async save(entity: Partial<Layaway>): Promise<Layaway> {
-    const model = this.getModel();
-    const newEntity = new model(entity);
-    return await newEntity.save();
-  }
 
   async update(id: string, entity: Partial<Layaway>): Promise<Layaway | null> {
     return await this.getModel()
@@ -153,6 +147,7 @@ export class LayawayService extends BaseService<Layaway> {
    */
   async create(layawayData: Partial<Layaway>): Promise<Layaway> {
     try {
+
       // Calculate amounts
       layawayData.remainingAmount = (layawayData.totalAmount || 0) - (layawayData.initialPayment || 0);
       layawayData.paidAmount = layawayData.initialPayment;
@@ -176,9 +171,6 @@ export class LayawayService extends BaseService<Layaway> {
       
       // Create the layaway
       const layaway = await this.getModel().create(layawayData);
-      
-      // Mark items as reserved in inventory
-      //await this.reserveItems(layaway);
       
       // Register initial payment if exists
       if ((layawayData.initialPayment || 0) > 0) {
@@ -401,6 +393,9 @@ export class LayawayService extends BaseService<Layaway> {
       console.error('Error generating layaway code:', error);
       return 'LAY0001';
     }
+  }
+  async save(_entity: Partial<Layaway>): Promise<Layaway> {    
+    throw new Error("Method not implemented");
   }
 }
 

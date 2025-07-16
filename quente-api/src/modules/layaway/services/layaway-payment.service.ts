@@ -11,7 +11,7 @@ dayjs.extend(utc);
 export class LayawayPaymentService extends BaseService<LayawayPayment> {
   getModelName = () => 'LayawayPayment';
   getSchema = () => layawayPaymentSchema;
-  getCollectionName = () => undefined;
+  getCollectionName = () => 'layaway_payments';
 
   async findOne(id: string): Promise<LayawayPayment | null> {
     return await this.getModel().findById(id).exec();

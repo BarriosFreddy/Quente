@@ -17,7 +17,6 @@ export const layawaySchema = new Schema({
   agreementDate: Date,            // Fecha del acuerdo
   expectedDeliveryDate: Date,     // Fecha estimada de entrega
   completionDate: Date,           // Fecha de finalización del plan
-  clientId: Types.ObjectId,       // ID del cliente
   status: {
     type: String,
     enum: Object.values(LayawayStatus),
@@ -28,14 +27,8 @@ export const layawaySchema = new Schema({
       _id: Types.ObjectId,
       code: String,
       name: String,
-      description: String,
       price: Number,
       units: Number,
-      measurementUnit: String,
-      multiplicity: Number,
-      lot: String,
-      expirationDate: String,
-      laboratory: String,
     },
   ],
   payments: [Types.ObjectId],     // Referencias a los pagos realizados
@@ -53,7 +46,7 @@ export const layawaySchema = new Schema({
     offset: Number,
   },
   updatedAt: {
-    type: Date,
-    default: null,
+    date: Number,
+    offset: Number,
   },
 });

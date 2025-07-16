@@ -7,8 +7,8 @@ export class Client {
     public dniType: string,
     public dni: string,
     public email: string,
-    public address: number, // lowest point to alert and reorder it
-    public phomeNumber: string,
+    public address: number,
+    public phoneNumber: string,
     public createdAt: Date,
     public updatedAt: Date,
   ) {}
