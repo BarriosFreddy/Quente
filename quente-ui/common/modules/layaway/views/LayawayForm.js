@@ -28,6 +28,7 @@ import CIcon from '@coreui/icons-react';
 import { cilTrash, cilPlus } from '@coreui/icons';
 import ClientSearchComponent from "../../../shared/components/client-search-component/ClientSearchComponent";
 import { sendToast, sendWarningToast } from '../../../shared/services/notification.service';
+import ItemSearchComponent from '../../../shared/components/item-search-component/ItemSearchComponent';
 
 
 const layawayInitialState = {
@@ -300,7 +301,7 @@ function LayawayForm(props) {
                 />
               </CCol>
             </CRow>
-
+            <ItemSearchComponent />
             {/* Items */}
             <CRow className="mb-4">
               <CCol md="12" className="d-flex justify-content-between align-items-center mb-3">

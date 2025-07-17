@@ -6,9 +6,8 @@ import React, {
   useState,
 } from "react";
 import PropTypes from "prop-types";
-import CIcon from "@coreui/icons-react";
-import { cilPlus } from "@coreui/icons";
-import "./clientSearchComponent.css";
+
+import "./itemSearchComponent.css";
 import { useDispatch, useSelector } from "react-redux";
 import {
   CButton,
@@ -21,38 +20,34 @@ import {
   CTableBody,
   CTableDataCell,
   CTableRow,
-  CModal,
-  CModalBody,
 } from "@coreui/react";
 
-import {
-  getClientByDNI,
-  getClients,
-} from "./../../../modules/client/services/clients.service";
-import Client from "./../../../modules/client/views/clients/Clients";
+import { getItems } from "./../../../modules/inventory/services/items.service";
 
-const ClientSearchComponent = forwardRef(function ClientSearchComponent(
+const ItemSearchComponent = forwardRef(function ItemSearchComponent(
   props,
   ref
 ) {
   const dispatch = useDispatch();
-  const clients = useSelector((state) => state.clients.clients);
-  const defaultClient = useSelector((state) => state.clients.client);
-  let [clientSelected, setClientSelected] = useState(null);
+  const items = useSelector((state) => state.items.items);
+  const [itemSelected, setItemSelected] = useState(null);
   const searchInputRef = useRef();
   const componentRef = useRef();
   const [showList, setShowList] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  let [showClientModal, setShowClientModal] = useState(false);
 
   useEffect(() => {
-    if (props.defaultValue)
-      dispatch(getClientByDNI(props.defaultValue));
+    if (props.defaultValue) {
+      dispatch(getItems({ code: props.defaultValue }));
+    }
   }, [dispatch, props.defaultValue]);
+
   useEffect(() => {
-    setClientSelected(defaultClient);
-  }, [defaultClient]);
+    if (props.defaultItem) {
+      setItemSelected(props.defaultItem);
+    }
+  }, [props.defaultItem]);
 
   useEffect(() => {
     // Function to handle clicks outside the component
@@ -78,23 +73,26 @@ const ClientSearchComponent = forwardRef(function ClientSearchComponent(
     () => {
       return {
         getSelected() {
-          return clientSelected;
+          return itemSelected;
         },
-        setSelected(client) {
-          setClientSelected(client);
+        setSelected(item) {
+          setItemSelected(item);
         },
         clear() {
-          setClientSelected(null);
+          setItemSelected(null);
+          setSearchTerm("");
         },
-
       };
     },
-    [clientSelected]
+    [itemSelected]
   );
 
   const handleChangeInput = ({ target: { value } }) => {
     setSearchTerm(value);
-    dispatch(getClients({ dni: value }));
+    if (value) {
+      // Search by both name and code
+      dispatch(getItems({ name: value, code: value }));
+    }
   };
 
   const handleClickInput = () => {
@@ -103,11 +101,11 @@ const ClientSearchComponent = forwardRef(function ClientSearchComponent(
 
   const handleFocusInput = handleClickInput;
 
-  const handleClickRow = (client) => {
+  const handleClickRow = (item) => {
     setIsSearching(false);
     setShowList(false);
-    setClientSelected(client);
-    props.onSelect && props.onSelect(client);
+    setItemSelected(item);
+    props.onSelect && props.onSelect(item);
   };
 
   const handleClickLabel = () => {
@@ -115,31 +113,21 @@ const ClientSearchComponent = forwardRef(function ClientSearchComponent(
     setImmediate(() => {
       searchInputRef.current?.focus();
     });
-    dispatch(getClients({ dni: searchTerm }));
+    dispatch(getItems({ name: searchTerm, code: searchTerm }));
   };
 
   const handleFocusLabel = handleClickLabel;
 
-  const getClientNameFormatted = (client) =>
-    `${client?.name || ""} (${client?.dni || ""})`;
+  const getItemNameFormatted = (item) =>
+    `${item?.name || ""} (${item?.code || ""})`;
 
-  const handleNewClient = () => {
-    setShowClientModal(true);
-  };
 
-  const handleCancelNewClient = () => {
-    setShowClientModal(false);
-  };
-
-  const handleSaveNewClient = () => {
-    setShowClientModal(false);
-  };
 
   return (
     <>
       <CRow ref={componentRef}>
         <CFormLabel htmlFor="searchInput" className="col-sm-2 col-form-label d-none d-md-block">
-          Cliente:
+          {props.label || "Artículo:"}
         </CFormLabel>
         <CCol>
           <CInputGroup>
@@ -151,10 +139,11 @@ const ClientSearchComponent = forwardRef(function ClientSearchComponent(
                 formNoValidate
                 size="sm"
                 value={searchTerm}
-                placeholder="Buscar cliente..."
+                placeholder="Buscar artículo..."
                 onChange={(event) => handleChangeInput(event)}
                 onClick={handleClickInput}
                 onFocus={handleFocusInput}
+                onBlur={() => props.allowBlur && setIsSearching(false)}
               />
             )}
             {!isSearching && (
@@ -162,16 +151,17 @@ const ClientSearchComponent = forwardRef(function ClientSearchComponent(
                 type="text"
                 formNoValidate
                 size="sm"
-                value={getClientNameFormatted(clientSelected)}
+                value={getItemNameFormatted(itemSelected)}
                 readOnly
+                placeholder={props.placeholder || "Seleccione un artículo..."}
                 onClick={handleClickLabel}
                 onFocus={handleFocusLabel}
               />
             )}
           </CInputGroup>
-          {showList && (
+          {showList && items && items.length > 0 && (
             <div
-              className="client-list"
+              className="item-list"
               style={{
                 maxHeight: 150,
                 width: searchInputRef.current?.offsetWidth || 200,
@@ -186,58 +176,54 @@ const ClientSearchComponent = forwardRef(function ClientSearchComponent(
                 }}
               >
                 <CTableBody>
-                  {clients.map((client, index) => (
+                  {items.map((item, index) => (
                     <CTableRow
                       key={index}
                       active={
-                        clientSelected && clientSelected.dni === client.dni
+                        itemSelected && itemSelected.code === item.code
                       }
-                      onClick={() => handleClickRow(client)}
+                      onClick={() => handleClickRow(item)}
                     >
                       <CTableDataCell>
-                        {getClientNameFormatted(client)}
+                        <div>{item.name}</div>
+                        <div style={{ fontSize: '0.8rem', color: '#6c757d' }}>
+                          {item.code} - Stock: {item.stock || 0}
+                        </div>
                       </CTableDataCell>
                     </CTableRow>
                   ))}
-                  {clients.length <= 0 && "Loading..."}
                 </CTableBody>
               </CTable>
             </div>
           )}
+          {showList && (!items || items.length === 0) && searchTerm && (
+            <div
+              className="item-list"
+              style={{
+                maxHeight: 150,
+                width: searchInputRef.current?.offsetWidth || 200,
+                padding: '10px',
+                textAlign: 'center'
+              }}
+            >
+              No se encontraron resultados
+            </div>
+          )}
         </CCol>
-        <CCol lg="2">
-          <CButton
-            size="sm"
-            variant="outline"
-            color="success"
-            onClick={handleNewClient}
-          >
-            <CIcon icon={cilPlus} size="sm" />
-            NUEVO
-          </CButton>
-        </CCol>
+
       </CRow>
-      <CModal
-        size="lg"
-        backdrop="static"
-        visible={showClientModal}
-        onClose={() => setShowClientModal(false)}
-      >
-        <CModalBody style={{ padding: 0 }}>
-          <Client
-            isPopup
-            onCancel={handleCancelNewClient}
-            onSave={handleSaveNewClient}
-          />
-        </CModalBody>
-      </CModal>
+
     </>
   );
 });
 
-export default ClientSearchComponent;
+export default ItemSearchComponent;
 
-ClientSearchComponent.propTypes = {
+ItemSearchComponent.propTypes = {
   onSelect: PropTypes.func,
   defaultValue: PropTypes.string,
+  defaultItem: PropTypes.object,
+  label: PropTypes.string,
+  placeholder: PropTypes.string,
+  allowBlur: PropTypes.bool
 };
