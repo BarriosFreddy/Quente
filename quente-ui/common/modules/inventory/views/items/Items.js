@@ -63,7 +63,7 @@ function Item() {
         handleSearch({ page: queryParams.page });
       } else {
         sendToast(dispatch, {
-          message: "No se pudo guardar los datos",
+          message: "No se pudo guardar los datos, intente nuevamente!",
           color: "danger",
         });
       }

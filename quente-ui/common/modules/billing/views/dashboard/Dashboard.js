@@ -68,8 +68,6 @@ const Dashboard = () => {
   const categoryLabels = dashboardStats?.stockByCategory?.map((cat) => cat.name) || [];
   const categoryData = dashboardStats?.stockByCategory?.map((cat) => cat.stock) || [];
 
-  console.log({ dashboardStats });
-  
   return (
     <>
       <Helmet>
