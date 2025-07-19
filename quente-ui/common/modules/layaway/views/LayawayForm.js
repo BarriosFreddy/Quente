@@ -21,7 +21,7 @@ import {
 import { saveLayaway } from '../services/layaways.service';
 import CurrencyFormInput from '../../../shared/components/CurrencyFormInput';
 import FormInput from '../../../shared/components/FormInput';
-import { getUUID } from '@quente/common/utils';
+import { getMainPrice, getUUID } from '@quente/common/utils';
 import ConfirmDialog from '../../../shared/components/ConfirmDialog';
 import { formatCurrency } from '@quente/common/utils';
 import CIcon from '@coreui/icons-react';
@@ -36,15 +36,7 @@ const layawayInitialState = {
   customerId: '',
   customerPhone: '',
   customerEmail: '',
-  items: [
-    {
-      name: '',
-      quantity: 1,
-      unitPrice: '',
-      subtotal: '',
-      id: getUUID()
-    }
-  ],
+  items: [],
   totalAmount: 0,
   initialPayment: 0,
   remainingAmount: 0,
@@ -67,6 +59,7 @@ function LayawayForm(props) {
 
   // Reference for client search component
   const clientSearchComponentRef = useRef();
+  const itemSearchComponentRef = useRef()
 
   useEffect(() => {
     if (props.layaway) {
@@ -132,23 +125,7 @@ function LayawayForm(props) {
     setLayaway(calculatedLayaway);
   };
 
-  // Add a new item to the layaway
-  const handleAddItem = () => {
-    const newItem = {
-      name: '',
-      quantity: 1,
-      unitPrice: '',
-      subtotal: '',
-      id: getUUID()
-    };
-
-    const updatedLayaway = {
-      ...layaway,
-      items: [...(layaway.items || []), newItem]
-    };
-
-    setLayaway(updatedLayaway);
-  };
+  const isAdded = (itemCode) => items.some(({ code }) => code === itemCode);
 
   // Remove an item from the layaway
   const handleDeleteItem = (id) => {
@@ -254,6 +231,24 @@ function LayawayForm(props) {
     setLayaway({ ...layaway, customerName: client.name, customerPhone: client.phoneNumber, customerEmail: client.email });
   };
 
+  const handleSelectItem = (item) => {
+    const newItem = {
+      code: item.code,
+      name: item.name,
+      quantity: 1,
+      unitPrice: getMainPrice(item.pricesRatio),
+      subtotal: '',
+    };
+
+    const updatedLayaway = {
+      ...layaway,
+      items: [...(layaway.items || []), newItem]
+    };
+
+    setLayaway(updatedLayaway);
+    itemSearchComponentRef.current?.clear()
+  }
+
   return (
     <>
       <CCard className="shadow border-10">
@@ -301,21 +296,16 @@ function LayawayForm(props) {
                 />
               </CCol>
             </CRow>
-            <ItemSearchComponent />
             {/* Items */}
             <CRow className="mb-4">
               <CCol md="12" className="d-flex justify-content-between align-items-center mb-3">
                 <h5>Artículos</h5>
-                <CButton
-                  color="primary"
-                  size="sm"
-                  onClick={handleAddItem}
-                  disabled={saving}
-                >
-                  <CIcon icon={cilPlus} size="sm" /> Agregar Artículo
-                </CButton>
               </CCol>
-
+              <CCol md="12">
+                <ItemSearchComponent 
+                  label="Ariculo"
+                  ref={itemSearchComponentRef} onSelect={handleSelectItem} />
+              </CCol>
               {/* Header row for items table */}
               <CCol md="12">
                 <CRow className="border-bottom pb-2 mb-3 fw-bold">

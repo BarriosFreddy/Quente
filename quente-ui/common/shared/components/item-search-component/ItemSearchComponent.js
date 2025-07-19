@@ -61,7 +61,7 @@ const ItemSearchComponent = forwardRef(function ItemSearchComponent(
     if (showList) {
       document.addEventListener('mousedown', handleClickOutside);
     }
-    
+
     // Cleanup the event listener
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
@@ -118,8 +118,7 @@ const ItemSearchComponent = forwardRef(function ItemSearchComponent(
 
   const handleFocusLabel = handleClickLabel;
 
-  const getItemNameFormatted = (item) =>
-    `${item?.name || ""} (${item?.code || ""})`;
+  const getItemNameFormatted = (item) => item ? `${item?.name || ""} (${item?.code || ""})` : '';
 
 
 

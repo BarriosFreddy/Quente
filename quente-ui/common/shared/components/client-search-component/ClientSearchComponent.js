@@ -66,7 +66,7 @@ const ClientSearchComponent = forwardRef(function ClientSearchComponent(
     if (showList) {
       document.addEventListener('mousedown', handleClickOutside);
     }
-    
+
     // Cleanup the event listener
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
@@ -120,8 +120,7 @@ const ClientSearchComponent = forwardRef(function ClientSearchComponent(
 
   const handleFocusLabel = handleClickLabel;
 
-  const getClientNameFormatted = (client) =>
-    `${client?.name || ""} (${client?.dni || ""})`;
+  const getClientNameFormatted = (client) => client ? `${client?.name || ""} (${client?.dni || ""})` : '';
 
   const handleNewClient = () => {
     setShowClientModal(true);
@@ -151,7 +150,7 @@ const ClientSearchComponent = forwardRef(function ClientSearchComponent(
                 formNoValidate
                 size="sm"
                 value={searchTerm}
-                placeholder="Buscar cliente..."
+                placeholder="Seleccione un cliente..."
                 onChange={(event) => handleChangeInput(event)}
                 onClick={handleClickInput}
                 onFocus={handleFocusInput}
@@ -162,6 +161,7 @@ const ClientSearchComponent = forwardRef(function ClientSearchComponent(
                 type="text"
                 formNoValidate
                 size="sm"
+                placeholder="Seleccione un cliente..."
                 value={getClientNameFormatted(clientSelected)}
                 readOnly
                 onClick={handleClickLabel}
