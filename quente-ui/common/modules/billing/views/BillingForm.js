@@ -73,7 +73,7 @@ const BillingForm = (props) => {
     const termToSearch = term ?? searchTerm;
     if (!!termToSearch) {
       dispatch(
-        getItems({ code: termToSearch, name: termToSearch, page: 1 }, false)
+        getItems({ code: termToSearch, name: termToSearch, page: 1 }, true)
       );
     }
   };

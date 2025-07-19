@@ -11,8 +11,9 @@ import db from "@quente/common/shared/services/DatabaseService";
 export const saveItem = (item) => async (dispatch, _, api) => {
   try {
     dispatch(setSaving(true));
-    const savedItem = await db.saveItem(item, api);
-    dispatch(saveSuccess(!!savedItem._id));
+    //const savedItem = await db.saveItem(item, api);
+    const { status } = await api.post('/items', item);
+    dispatch(saveSuccess(status === 201))
   } catch (error) {
     console.error("Error saving item:", error);
     dispatch(saveSuccess(false));
@@ -22,10 +23,14 @@ export const saveItem = (item) => async (dispatch, _, api) => {
 };
 
 export const updateItem = (item) => async (dispatch, _, api) => {
+  dispatch(setSaving(true));
   try {
-    dispatch(setSaving(true));
-    const updatedItem = await db.saveItem(item, api);
-    dispatch(saveSuccess(!!updatedItem._id));
+    const itemToUpdate = { ...item }
+    const id = itemToUpdate._id
+    delete itemToUpdate._id
+    //const updatedItem = await db.saveItem(item, api);
+    const { status } = await api.put(`/items/${id}`, itemToUpdate)
+    dispatch(saveSuccess(status === 201));
   } catch (error) {
     console.error("Error updating item:", error);
     dispatch(saveSuccess(false));
@@ -47,8 +52,9 @@ export const saveItemCategoriesBulk = (items) => async (dispatch, _, api) => {
 export const existByCode = (code) => async (dispatch, _, api) => {
   try {
     if (!code) return;
-    const isRegistered = await itemsRepository.existsByCode(code);
-    dispatch(setExistsByCode(!!isRegistered));
+    const { data } = await api.get(`/items/code/${code}`)
+    //const isRegistered = await itemsRepository.existsByCode(code);
+    dispatch(setExistsByCode(!!data));
   } catch (error) {
     console.error("Error checking existence by code:", error);
     dispatch(setExistsByCode(false));
@@ -60,12 +66,19 @@ export const getItems =
   async (dispatch, getState, api) => {
     try {
       dispatch(setFetching(true));
-      const data = await itemsRepository.findByNameOrCode({
-        name: queryParams.name,
-        code: queryParams.code,
-        page: queryParams.page,
-      });
-      dispatch(setItems(data));
+      let items = [];
+      if (useCacheOnly) {
+        items = await itemsRepository.findByNameOrCode({
+          name: queryParams.name,
+          code: queryParams.code,
+          page: queryParams.page,
+        });
+      } else {
+        const params = new URLSearchParams(queryParams).toString();
+        const { data } = await api.get(`/items?${params}`)
+        items = data
+      }
+      dispatch(setItems(items));
     } catch (error) {
       console.error("Error fetching items:", error);
       dispatch(setItems([]));
