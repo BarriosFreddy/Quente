@@ -89,7 +89,7 @@ function Layaways() {
         )}
 
         {currentView === VIEW_STATES.DETAIL && layaway && (
-          <LayawayDetail />
+          <LayawayDetail onBack={handleBackToList} />
         )}
       </CContainer>
     </>

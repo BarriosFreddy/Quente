@@ -141,7 +141,7 @@ export const getLayawayPayments = (id) => async (dispatch, _, api) => {
 export const updateLayawayStatus = (id, statusUpdate) => async (dispatch, _, api) => {
   dispatch(setSaving(true))
   try {
-    const { data, status } = await api.put(`/layaways/${id}/status`, statusUpdate)
+    const { data, status } = await api.patch(`/layaways/${id}/status`, statusUpdate)
     dispatch(setUpdateStatusSuccess(status === 200))
     if (status === 200) {
       dispatch(setLayaway(data))
