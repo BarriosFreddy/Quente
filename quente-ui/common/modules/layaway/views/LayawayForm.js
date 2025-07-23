@@ -18,16 +18,15 @@ import {
   CSpinner,
   CFormFeedback
 } from '@coreui/react';
-import { saveLayaway } from '../services/layaways.service';
 import CurrencyFormInput from '../../../shared/components/CurrencyFormInput';
 import FormInput from '../../../shared/components/FormInput';
-import { getMainPrice, getUUID } from '@quente/common/utils';
+import { getMainPrice } from '@quente/common/utils';
 import ConfirmDialog from '../../../shared/components/ConfirmDialog';
 import { formatCurrency } from '@quente/common/utils';
 import CIcon from '@coreui/icons-react';
 import { cilTrash, cilPlus } from '@coreui/icons';
 import ClientSearchComponent from "../../../shared/components/client-search-component/ClientSearchComponent";
-import { sendToast, sendWarningToast } from '../../../shared/services/notification.service';
+import { sendWarningToast } from '../../../shared/services/notification.service';
 import ItemSearchComponent from '../../../shared/components/item-search-component/ItemSearchComponent';
 
 
@@ -125,7 +124,7 @@ function LayawayForm(props) {
     setLayaway(calculatedLayaway);
   };
 
-  const isAdded = (itemCode) => items.some(({ code }) => code === itemCode);
+  const isAdded = (itemCode) => layaway.items.some(({ code }) => code === itemCode);
 
   // Remove an item from the layaway
   const handleDeleteItem = (id) => {
@@ -232,21 +231,49 @@ function LayawayForm(props) {
   };
 
   const handleSelectItem = (item) => {
-    const newItem = {
-      code: item.code,
-      name: item.name,
-      quantity: 1,
-      unitPrice: getMainPrice(item.pricesRatio),
-      subtotal: '',
-    };
+    // Check if the item is already in the list
+    if (isAdded(item.code)) {
+      // If item exists, increase its quantity instead of adding a duplicate
+      const updatedItems = layaway.items.map(existingItem => {
+        if (existingItem.code === item.code) {
+          const newQuantity = (parseInt(existingItem.quantity, 10) || 0) + 1;
+          const newSubtotal = newQuantity * parseFloat(existingItem.unitPrice);
+          return {
+            ...existingItem,
+            quantity: newQuantity,
+            subtotal: newSubtotal
+          };
+        }
+        return existingItem;
+      });
+      
+      // Update layaway with updated items and recalculate totals
+      const updatedLayaway = { ...layaway, items: updatedItems };
+      const calculatedLayaway = calculateTotals(updatedLayaway);
+      setLayaway(calculatedLayaway);
+    } else {
+      // If item is new, add it to the list
+      const newItem = {
+        id: Date.now().toString(), // Ensure each item has a unique ID
+        code: item.code,
+        name: item.name,
+        quantity: 1,
+        unitPrice: getMainPrice(item.pricesRatio),
+        subtotal: getMainPrice(item.pricesRatio), // Initial subtotal is just the price
+      };
 
-    const updatedLayaway = {
-      ...layaway,
-      items: [...(layaway.items || []), newItem]
-    };
-
-    setLayaway(updatedLayaway);
-    itemSearchComponentRef.current?.clear()
+      const updatedLayaway = {
+        ...layaway,
+        items: [...(layaway.items || []), newItem]
+      };
+      
+      // Calculate totals after adding the new item
+      const calculatedLayaway = calculateTotals(updatedLayaway);
+      setLayaway(calculatedLayaway);
+    }
+    
+    // Clear the item search component
+    itemSearchComponentRef.current?.clear();
   }
 
   return (
@@ -303,7 +330,7 @@ function LayawayForm(props) {
               </CCol>
               <CCol md="12">
                 <ItemSearchComponent 
-                  label="Ariculo"
+                  label="Seleccione el articulo"
                   ref={itemSearchComponentRef} onSelect={handleSelectItem} />
               </CCol>
               {/* Header row for items table */}
@@ -328,7 +355,7 @@ function LayawayForm(props) {
                         value={item.name}
                         onChange={(e) => handleItemChange(e, item.id, index)}
                         invalid={failedValidations[`itemName${index}`]}
-                        disabled={saving}
+                        disabled
                       />
                     </CCol>
                     <CCol md="2">
