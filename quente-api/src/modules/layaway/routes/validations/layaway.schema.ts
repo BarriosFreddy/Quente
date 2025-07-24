@@ -22,7 +22,9 @@ export const createLayawaySchema = Joi.object({
     }),
   client: Joi.object({
     id: Joi.string().required(),
-    name: Joi.string().required()
+    name: Joi.string().required(),
+    email: Joi.string().email().required(),
+    phoneNumber: Joi.string().required()
   }).required()
     .messages({
       'object.base': 'La información del cliente debe ser un objeto',

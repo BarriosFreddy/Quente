@@ -40,6 +40,9 @@ export const layawaySchema = new Schema({
   client: {
     id: Types.ObjectId,
     name: String,
+    lastName: String,
+    email: String,
+    phoneNumber: String,
   },
   createdAt: {
     date: Number,

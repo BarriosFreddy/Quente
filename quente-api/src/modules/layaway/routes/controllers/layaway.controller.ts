@@ -27,12 +27,46 @@ export const createLayaway = async (req: Request, res: Response) => {
 
 export const getLayaways = async (req: Request, res: Response) => {
   try {
-    const { page = 1, ...filters } = req.query;
-    const pageNum = parseInt(page as string, 10);
+    // Parse the page parameter
+    const page = req.query.page ? parseInt(req.query.page as string, 10) : 1;
     
+    
+    // Process filters from the query string format the frontend is using
+    const processedFilters: any = {};
+    
+    // Extract all query parameters
+    const queryParams = req.query as any;
+    console.log(JSON.stringify({  queryParams: req.query }), queryParams.filters);
+    
+    // Handle regular search and pagination parameters
+    if (queryParams.search) {
+      processedFilters.search = queryParams.search as string;
+    }
+    
+    // Process date range filters (format: filters[dateRange][fromDate])
+    if (queryParams.filters?.dateRange?.fromDate || queryParams.filters?.dateRange?.toDate) {
+      processedFilters.dateRange = {};
+      
+      if (queryParams.filters?.dateRange?.fromDate) {
+        processedFilters.dateRange.fromDate = queryParams.filters.dateRange.fromDate as string;
+      }
+      
+      if (queryParams.filters?.dateRange?.toDate) {
+        processedFilters.dateRange.toDate = queryParams.filters.dateRange.toDate as string;
+      }
+    }
+    
+    // Process status filter (format: filters[status])
+    if (queryParams.filters?.status) {
+      processedFilters.status = queryParams.filters.status as string;
+    }
+
+    console.log(  JSON.stringify({ processedFilters }));
+    
+    // Call service with processed filters
     const result = await setTenantIdToService(res, layawayService).findAllWithFilters({ 
-      page: pageNum, 
-      filters 
+      page: page, 
+      filters: processedFilters
     });
     
     return res.status(200).json(result);

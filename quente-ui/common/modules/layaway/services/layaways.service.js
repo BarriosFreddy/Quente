@@ -44,10 +44,51 @@ export const saveLayaway = (layaway) => async (dispatch, _, api) => {
 export const getLayaways = (params = {}) => async (dispatch, _, api) => {
   dispatch(setFetching(true))
   try {
-    const searchParams = new URLSearchParams(params).toString()
-    const { data, status } = await api.get(
-      `/layaways${searchParams.length > 0 ? '?' + searchParams : ''}`,
-    )
+    // Create a properly structured params object for the API
+    let apiUrl = '/layaways';
+    let queryString = '';
+    
+    // Make a copy of the params to avoid mutating the original
+    const apiParams = { ...params };
+    
+    // Convert the params object to a query string
+    // We need to handle this manually because the backend expects a specific structure
+    if (Object.keys(apiParams).length > 0) {
+      const queryParts = [];
+      
+      // Handle special case for dateRange to match backend expectations
+      if (apiParams.dateRange) {
+        if (apiParams.dateRange.fromDate) {
+          queryParts.push(`filters[dateRange][fromDate]=${encodeURIComponent(apiParams.dateRange.fromDate)}`);
+        }
+        if (apiParams.dateRange.toDate) {
+          queryParts.push(`filters[dateRange][toDate]=${encodeURIComponent(apiParams.dateRange.toDate)}`);
+        }
+        // Remove dateRange from params to avoid double processing
+        delete apiParams.dateRange;
+      }
+      
+      // Handle all other params
+      Object.entries(apiParams).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          if (key === 'status') {
+            // Special case for status filter
+            queryParts.push(`filters[status]=${encodeURIComponent(value)}`);
+          } else {
+            queryParts.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
+          }
+        }
+      });
+      
+      if (queryParts.length > 0) {
+        queryString = '?' + queryParts.join('&');
+      }
+    }
+    
+    // Update the API URL with the query string
+    apiUrl += queryString;
+    
+    const { data, status } = await api.get(apiUrl)
     if (status === 200) {
       dispatch(setLayaways(data?.data))
       dispatch(setPagination(data.pagination))

@@ -13,7 +13,7 @@ import {
 import { getLayaways } from '../services/layaways.service';
 import { formatCurrency, formatDate } from '@quente/common/utils';
 import CONSTANTS from '../../../constants';
-import { sendToast } from '../../../shared/services/notification.service';
+import { sendToast, sendWarningToast } from '../../../shared/services/notification.service';
 import { CRow } from '@coreui/react';
 import PropTypes from 'prop-types';
 import CIcon from '@coreui/icons-react';
@@ -39,15 +39,14 @@ const LAYAWAY_STATUSES = {
 };
 
 function LayawayList(props) {
+    const dispatch = useDispatch();
     const [searchTerm, setSearchTerm] = useState("");
     const [showFilterSection, setShowFilterSection] = useState(false);
     const [queryParams, setQueryParams] = useState(queryParamsInitial);
     const [filters, setFilters] = useState({
         status: "",
         startDate: "",
-        endDate: "",
-        minAmount: "",
-        maxAmount: ""
+        endDate: ""
     });
 
     // Redux state
@@ -81,7 +80,18 @@ function LayawayList(props) {
 
     // Handle filter changes
     const handleChangeFilters = ({ target: { name, value } }) => {
-        setFilters({ ...filters, [name]: value });
+        const updatedFilters = { ...filters, [name]: value };
+        
+        // Validate date ranges
+        if (name === 'endDate' && updatedFilters.startDate && new Date(value) < new Date(updatedFilters.startDate)) {
+            // If end date is before start date, show error
+            sendWarningToast(dispatch, {
+                message: 'La fecha final debe ser mayor o igual a la fecha inicial',
+            });
+            return; // Don't update the state with invalid date
+        }
+        
+        setFilters(updatedFilters);
     };
 
     // Apply all filters
@@ -92,20 +102,17 @@ function LayawayList(props) {
             newParams.status = filters.status;
         }
 
-        if (filters.startDate) {
-            newParams.startDate = filters.startDate;
-        }
-
-        if (filters.endDate) {
-            newParams.endDate = filters.endDate;
-        }
-
-        if (filters.minAmount) {
-            newParams.minAmount = filters.minAmount;
-        }
-
-        if (filters.maxAmount) {
-            newParams.maxAmount = filters.maxAmount;
+        // Format date parameters as dateRange object
+        if (filters.startDate || filters.endDate) {
+            newParams.dateRange = {};
+            
+            if (filters.startDate) {
+                newParams.dateRange.fromDate = filters.startDate;
+            }
+            
+            if (filters.endDate) {
+                newParams.dateRange.toDate = filters.endDate;
+            }
         }
 
         props.onSearch(newParams);
@@ -116,9 +123,7 @@ function LayawayList(props) {
         setFilters({
             status: "",
             startDate: "",
-            endDate: "",
-            minAmount: "",
-            maxAmount: ""
+            endDate: ""
         });
         props.onSearch({ page: 1 });
     };
@@ -268,26 +273,8 @@ function LayawayList(props) {
                                         onChange={handleChangeFilters}
                                     />
                                 </CCol>
-                                <CCol md="3">
-                                    <CFormLabel>Monto Mínimo</CFormLabel>
-                                    <CFormInput
-                                        type="number"
-                                        name="minAmount"
-                                        value={filters.minAmount}
-                                        onChange={handleChangeFilters}
-                                    />
-                                </CCol>
                             </CRow>
                             <CRow className="mb-3">
-                                <CCol md="3">
-                                    <CFormLabel>Monto Máximo</CFormLabel>
-                                    <CFormInput
-                                        type="number"
-                                        name="maxAmount"
-                                        value={filters.maxAmount}
-                                        onChange={handleChangeFilters}
-                                    />
-                                </CCol>
                                 <CCol md="9" className="d-flex align-items-end">
                                     <CButton
                                         type="button"

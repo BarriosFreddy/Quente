@@ -105,9 +105,17 @@ export class LayawayService extends BaseService<Layaway> {
       query.code = { $regex: new RegExp(filters.code, 'i') };
     }
     
-    // Apply client filter (search by client name)
+    // Apply client filters
     if (filters.clientName) {
       query['client.name'] = { $regex: new RegExp(filters.clientName, 'i') };
+    }
+    
+    if (filters.email) {
+      query['client.email'] = { $regex: new RegExp(filters.email, 'i') };
+    }
+    
+    if (filters.phoneNumber) {
+      query['client.phoneNumber'] = { $regex: new RegExp(filters.phoneNumber, 'i') };
     }
     
     // Execute query with pagination

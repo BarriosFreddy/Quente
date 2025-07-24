@@ -199,7 +199,9 @@ function LayawayForm(props) {
         expectedDeliveryDate: new Date(layaway.paymentDueDate),
         client: {
           id: selectedClient._id,
-          name: selectedClient.name
+          name: selectedClient.name,
+          email: layaway.customerEmail,
+          phoneNumber: layaway.customerPhone
         },
         // Format items according to backend schema
         items: layaway.items.map(item => ({
@@ -225,9 +227,18 @@ function LayawayForm(props) {
   // Calculate if remaining amount is fully covered by initial payment
   const isFullyPaid = layaway.remainingAmount === 0 && layaway.totalAmount > 0;
 
+  // Handle client selection
   const handleSelectClient = (client) => {
     if (!client) return;
-    setLayaway({ ...layaway, customerName: client.name, customerPhone: client.phoneNumber, customerEmail: client.email });
+    setLayaway({
+      ...layaway,
+      customerName: client.name,
+      customerId: client._id,
+      customerPhone: client.phoneNumber,
+      customerEmail: client.email
+    });
+    // Clear validation error for customer name
+    setFailedValidations({ ...failedValidations, customerName: false });
   };
 
   const handleSelectItem = (item) => {
@@ -246,7 +257,7 @@ function LayawayForm(props) {
         }
         return existingItem;
       });
-      
+
       // Update layaway with updated items and recalculate totals
       const updatedLayaway = { ...layaway, items: updatedItems };
       const calculatedLayaway = calculateTotals(updatedLayaway);
@@ -266,19 +277,19 @@ function LayawayForm(props) {
         ...layaway,
         items: [...(layaway.items || []), newItem]
       };
-      
+
       // Calculate totals after adding the new item
       const calculatedLayaway = calculateTotals(updatedLayaway);
       setLayaway(calculatedLayaway);
     }
-    
+
     // Clear the item search component
     itemSearchComponentRef.current?.clear();
   }
 
   return (
     <>
-      <CCard className="shadow border-10">
+      <CCard className="shadow border-10 mb-5">
         <CCardHeader>PLAN SEPARE</CCardHeader>
         <CCardBody>
           <CForm>
@@ -290,8 +301,11 @@ function LayawayForm(props) {
 
               {/* Client Search Component */}
               <CCol md="12" className="mb-3">
-                <ClientSearchComponent ref={clientSearchComponentRef} onSelect={handleSelectClient} defaultValue={layaway.customerId} />
+                <ClientSearchComponent
+                  ref={clientSearchComponentRef}
+                  onSelect={handleSelectClient}/>
               </CCol>
+
               <CCol md="6" className="mb-3">
                 <CFormLabel>Teléfono</CFormLabel>
                 <FormInput
@@ -329,7 +343,7 @@ function LayawayForm(props) {
                 <h5>Artículos</h5>
               </CCol>
               <CCol md="12">
-                <ItemSearchComponent 
+                <ItemSearchComponent
                   label="Seleccione el articulo"
                   ref={itemSearchComponentRef} onSelect={handleSelectItem} />
               </CCol>
@@ -477,36 +491,39 @@ function LayawayForm(props) {
               </CCol>
             </CRow>
           </CForm>
-        </ CCardBody >
-        <CCardFooter>
-          <CRow>
-            <CCol className="text-end">
+        </CCardBody>
+        <CCardFooter className="mt-2">
+          <CRow className="mt-0">
+            <CCol className="text-center" lg={{ offset: 4, span: 4 }}>
               <CButton
-                color="secondary"
-                onClick={props.onCancel}
-                className="me-2"
+                color="success"
+                type="button"
                 disabled={saving}
-              >
-                Cancelar
-              </CButton>
-              <CButton
-                color="primary"
                 onClick={save}
-                disabled={saving}
               >
                 {saving ? (
                   <>
                     <CSpinner size="sm" className="me-2" />
                     Guardando...
                   </>
+                ) : props.layaway && props.layaway?._id ? (
+                  'ACTUALIZAR'
                 ) : (
-                  'Guardar'
+                  'GUARDAR'
                 )}
+              </CButton>
+              &nbsp; &nbsp;
+              <CButton
+                variant="outline"
+                color="secondary"
+                onClick={props.onCancel}
+              >
+                CANCELAR
               </CButton>
             </CCol>
           </CRow>
         </CCardFooter>
-      </CCard >
+      </CCard>
     </>
 
   );

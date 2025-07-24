@@ -239,11 +239,11 @@ function LayawayDetail({ onBack }) {
                   <CCol md="6" className="mb-3">
                     <h5>Cliente</h5>
                     <p className="fs-5 mb-1">{layaway.client.name}</p>
-                    {layaway.client.phone && (
-                      <p className="mb-1">Teléfono: {layaway.client.phone}</p>
+                    {layaway.client.phoneNumber && (
+                      <p className="mb-1">Teléfono: {layaway.client.phoneNumber}</p>
                     )}
                     {layaway.client.email && (
-                      <p className="mb-1">Email: {layaway.client.email}</p>
+                      <p className="mb-1">Correo electrónico: {layaway.client.email}</p>
                     )}
                   </CCol>
                   <CCol md="6" className="mb-3">
