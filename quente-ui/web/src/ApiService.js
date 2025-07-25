@@ -40,7 +40,7 @@ axiosInstance.interceptors.response.use(
       } catch (refreshError) {
         // If refresh fails, redirect to login
         console.error('Token refresh failed:', refreshError)
-        window.location.href = '/login'
+        redirectToLogin()
         return Promise.reject(refreshError)
       }
     }
@@ -119,6 +119,11 @@ async function retry(request, retryAttempts = 0) {
     response = await request()
     if (![200, 201, 202].includes(response.status)) {
       console.error('ERROR ', response)
+      // Handle 401 Unauthorized after max retries
+      if (response.status === 401 && retryAttempts >= MAX_RETRY_ATTEMPTS - 1) {
+        console.error('Authentication failed after max retry attempts')
+        redirectToLogin()
+      }
       if (retryAttempts >= MAX_RETRY_ATTEMPTS) return response
       return await retry(request, ++retryAttempts)
     }
@@ -127,4 +132,22 @@ async function retry(request, retryAttempts = 0) {
     if (retryAttempts >= MAX_RETRY_ATTEMPTS) return response
     return await retry(request, ++retryAttempts)
   }
+}
+
+// Helper function to redirect to login page
+function redirectToLogin() {
+  // Skip redirection if already on a login page
+  const currentPath = window.location.pathname
+  if (currentPath === '/login' || currentPath === '/admin/login') {
+    return
+  }
+
+  // Use the current URL to determine the base path
+  const basePath = currentPath.startsWith('/admin') ? '/admin/login' : '/login'
+
+  // Store the current location to redirect back after login (if not a login page)
+  sessionStorage.setItem('redirectAfterLogin', currentPath)
+
+  // Redirect to login page
+  window.location.href = basePath
 }

@@ -10,6 +10,7 @@ import {
   cilSquare,
   cilSitemap,
   cilInbox,
+  cibSaltstack,
 } from '@coreui/icons'
 import { CNavGroup, CNavItem } from '@coreui/react'
 
@@ -54,7 +55,7 @@ let _nav = [
     component: CNavItem,
     name: 'Plan separe',
     to: '/layaways',
-    icon: <CIcon icon={cilChartLine} customClassName="nav-icon" />,
+    icon: <CIcon icon={cibSaltstack} customClassName="nav-icon" />,
     roles: ['ADMIN', 'SELLER'],
   },
   {
