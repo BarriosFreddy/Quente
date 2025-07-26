@@ -35,6 +35,7 @@ import {
 import { formatCurrency, formatDate } from '@quente/common/utils';
 import ConfirmDialog from '../../../shared/components/ConfirmDialog';
 import CurrencyFormInput from '../../../shared/components/CurrencyFormInput';
+import { useDidUpdateControl } from '../../../hooks/useDidUpdateControl';
 
 // Layaway statuses with colors and descriptions
 const LAYAWAY_STATUSES = {
@@ -79,20 +80,34 @@ function LayawayDetail({ onBack }) {
   const confirmDialogRef = useRef();
 
   // Reset payment form when modal is opened or when payment is successful
-  useEffect(() => {
-    if (addPaymentSuccess) {
-      setShowPaymentModal(false);
-      setNewPayment({ amount: '', paymentMethod: '' });
-    }
-  }, [addPaymentSuccess]);
+  useDidUpdateControl(
+    async () => {
+      if (addPaymentSuccess) {
+        setShowPaymentModal(false);
+        setNewPayment({ amount: '', paymentMethod: '' });
+      } else {
+        sendToast(dispatch, {
+          message: "No se pudo guardar los datos",
+          color: "danger",
+        });
+      }
+    },
+    saving,
+    [addPaymentSuccess]
+  );
+
 
   // Reset status form when modal is opened or when status update is successful
-  useEffect(() => {
-    if (updateStatusSuccess) {
-      setShowStatusModal(false);
-      setStatusUpdate({ status: '', reason: '' });
-    }
-  }, [updateStatusSuccess]);
+  useDidUpdateControl(
+    async () => {
+      if (updateStatusSuccess) {
+        setShowStatusModal(false);
+        setStatusUpdate({ status: '', reason: '' });
+      }
+    },
+    saving,
+    [updateStatusSuccess]
+  );
 
   // Calculate payment progress percentage
   const getPaymentProgress = () => {
@@ -129,7 +144,6 @@ function LayawayDetail({ onBack }) {
     const amount = parseFloat(newPayment.amount);
     const paymentMethod = newPayment.paymentMethod;
 
-    let isValid = true;
     const validation = {
       amount: !amount || amount <= 0 || amount > layaway?.remainingAmount,
       paymentMethod: !paymentMethod
@@ -149,32 +163,6 @@ function LayawayDetail({ onBack }) {
         name
       }
     }));
-  };
-
-  // Open status update modal
-  const handleUpdateStatus = () => {
-    setStatusUpdate({ status: '', reason: '' });
-    setStatusValidation({ status: false });
-    setShowStatusModal(true);
-  };
-
-  // Handle status form changes
-  const handleStatusChange = ({ target: { name, value } }) => {
-    setStatusUpdate({ ...statusUpdate, [name]: value });
-    if (name === 'status') {
-      setStatusValidation({ ...statusValidation, status: !value });
-    }
-  };
-
-  // Submit status update
-  const submitStatusUpdate = () => {
-    // Validate status
-    if (!statusUpdate.status) {
-      setStatusValidation({ status: true });
-      return;
-    }
-
-    dispatch(updateLayawayStatus(layaway._id, statusUpdate));
   };
 
   // Handle cancel confirmation
