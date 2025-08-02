@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const { REACT_APP_BASE_URL } = process.env
-const MAX_RETRY_ATTEMPTS = 3
+const MAX_RETRY_ATTEMPTS = 2
 
 const axiosInstance = axios.create({
   baseURL: REACT_APP_BASE_URL,
@@ -119,7 +119,14 @@ async function retry(request, retryAttempts = 0) {
     if (![200, 201, 202].includes(response.status)) {
       console.error('ERROR ', response)
       // Handle 401 Unauthorized after max retries
-      if (retryAttempts >= MAX_RETRY_ATTEMPTS) return response
+      if (retryAttempts >= MAX_RETRY_ATTEMPTS) {
+        let persistAuth = localStorage.getItem('persist:auth')
+        console.log({ persistAuth })
+        persistAuth = JSON.parse(persistAuth)
+        persistAuth.isLoggedIn = false
+        localStorage.setItem('persist:auth', JSON.stringify(persistAuth))
+        return response
+      }
       return await retry(request, ++retryAttempts)
     }
     return response
