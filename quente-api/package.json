@@ -35,7 +35,6 @@
     "helmet": "^6.0.1",
     "joi": "^17.7.0",
     "jsonwebtoken": "^9.0.0",
-    "jsreport": "^3.13.0",
     "mongoose": "^6.8.2",
     "morgan": "^1.10.0",
     "reflect-metadata": "^0.1.14",

@@ -121,10 +121,10 @@ async function retry(request, retryAttempts = 0) {
       // Handle 401 Unauthorized after max retries
       if (retryAttempts >= MAX_RETRY_ATTEMPTS) {
         let persistAuth = localStorage.getItem('persist:auth')
-        console.log({ persistAuth })
         persistAuth = JSON.parse(persistAuth)
         persistAuth.isLoggedIn = false
         localStorage.setItem('persist:auth', JSON.stringify(persistAuth))
+        redirectToLogin()
         return response
       }
       return await retry(request, ++retryAttempts)
