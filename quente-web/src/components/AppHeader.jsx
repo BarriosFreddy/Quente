@@ -14,7 +14,7 @@ import {
   CHeaderToggler,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilChartLine, cilDollar, cilHistory, cilInbox, cilMenu } from '@coreui/icons'
+import { cibSaltstack, cilDollar, cilHistory, cilInbox, cilMenu } from '@coreui/icons'
 
 import AppHeaderDropdown from '@/components/AppHeaderDropdown'
 import { setShowToast, setSidebarShow } from '@/app.slice'
@@ -44,8 +44,8 @@ const AppHeader = () => {
             <CNavLink to="/billings" component={NavLink}>
               <CIcon icon={cilHistory} /> Historial
             </CNavLink>
-            <CNavLink to="/dashboard" component={NavLink}>
-              <CIcon icon={cilChartLine} /> Panel de administración
+            <CNavLink to="/plan-separe" component={NavLink}>
+              <CIcon icon={cibSaltstack} /> Plan separe
             </CNavLink>
             <CNavLink to="/inventory-items" component={NavLink}>
               <CIcon icon={cilInbox} /> Inventario

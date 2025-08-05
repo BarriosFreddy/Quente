@@ -41,7 +41,7 @@ const routes = [
   { path: '/inventory-kardex', name: 'Kardex', element: Kardex },
   { path: '/inventory-purchase-orders', name: 'Purchase order', element: PurchaseOrder },
   { path: '/clients', name: 'Clients', element: Clients },
-  { path: '/layaways', name: 'Layaways', element: Layaways },
+  { path: '/plan-separe', name: 'Plan separe', element: Layaways },
 
   // Admin module routes
   { path: '/admin/*', name: 'Administración', element: AdminModule },

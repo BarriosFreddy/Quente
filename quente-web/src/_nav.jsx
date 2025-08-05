@@ -54,7 +54,7 @@ let _nav = [
   {
     component: CNavItem,
     name: 'Plan separe',
-    to: '/layaways',
+    to: '/plan-separe',
     icon: <CIcon icon={cibSaltstack} customClassName="nav-icon" />,
     roles: ['ADMIN', 'SELLER'],
   },
