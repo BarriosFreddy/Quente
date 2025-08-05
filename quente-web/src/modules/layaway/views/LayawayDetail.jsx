@@ -33,9 +33,9 @@ import {
   updateLayawayStatus
 } from '../services/layaways.service';
 import { formatCurrency, formatDate } from '@/utils';
-import ConfirmDialog from '../../../shared/components/ConfirmDialog';
-import CurrencyFormInput from '../../../shared/components/CurrencyFormInput';
-import { useDidUpdateControl } from '../../../hooks/useDidUpdateControl';
+import ConfirmDialog from '@/shared/components/ConfirmDialog';
+import CurrencyFormInput from '@/shared/components/CurrencyFormInput';
+import { useDidUpdateControl } from '@/hooks/useDidUpdateControl';
 
 // Layaway statuses with colors and descriptions
 const LAYAWAY_STATUSES = {

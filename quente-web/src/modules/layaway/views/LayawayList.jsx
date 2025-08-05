@@ -10,10 +10,8 @@ import {
     CTableRow,
     CBadge,
 } from '@coreui/react';
-import { getLayaways } from '../services/layaways.service';
 import { formatCurrency, formatDate } from '@/utils';
-import CONSTANTS from '../../../constants';
-import { sendToast, sendWarningToast } from '../../../shared/services/notification.service';
+import { sendWarningToast } from '@/shared/services/notification.service';
 import { CRow } from '@coreui/react';
 import PropTypes from 'prop-types';
 import CIcon from '@coreui/icons-react';

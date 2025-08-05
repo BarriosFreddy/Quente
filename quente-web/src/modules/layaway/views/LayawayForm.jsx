@@ -4,11 +4,9 @@ import PropTypes from 'prop-types';
 import {
   CButton,
   CRow,
-  CContainer,
   CCol,
   CFormInput,
   CForm,
-  CFormSelect,
   CCardBody,
   CCardHeader,
   CCard,
@@ -18,16 +16,15 @@ import {
   CSpinner,
   CFormFeedback
 } from '@coreui/react';
-import CurrencyFormInput from '../../../shared/components/CurrencyFormInput';
-import FormInput from '../../../shared/components/FormInput';
+import CurrencyFormInput from '@/shared/components/CurrencyFormInput';
+import FormInput from '@/shared/components/FormInput';
 import { getMainPrice } from '@/utils';
-import ConfirmDialog from '../../../shared/components/ConfirmDialog';
 import { formatCurrency } from '@/utils';
 import CIcon from '@coreui/icons-react';
-import { cilTrash, cilPlus } from '@coreui/icons';
-import ClientSearchComponent from "../../../shared/components/client-search-component/ClientSearchComponent";
-import { sendWarningToast } from '../../../shared/services/notification.service';
-import ItemSearchComponent from '../../../shared/components/item-search-component/ItemSearchComponent';
+import { cilTrash } from '@coreui/icons';
+import ClientSearchComponent from "@/shared/components/client-search-component/ClientSearchComponent";
+import { sendWarningToast } from '@/shared/services/notification.service';
+import ItemSearchComponent from '@/shared/components/item-search-component/ItemSearchComponent';
 
 
 const layawayInitialState = {
