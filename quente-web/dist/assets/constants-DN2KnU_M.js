@@ -1,0 +1,1 @@
+const E={ENTER_KEYCODE:13,TAB_KEYCODE:9},t={CREATING:"CREATING"};export{E as C,t as O};

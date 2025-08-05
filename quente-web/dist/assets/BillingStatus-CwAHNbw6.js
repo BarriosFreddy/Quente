@@ -1,0 +1,1 @@
+const E={APPROVED:"APPROVED",CANCELED:"CANCELED"};export{E as B};

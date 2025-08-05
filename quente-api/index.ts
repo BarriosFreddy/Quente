@@ -38,7 +38,7 @@ const app: Express = express();
         credentials: true,
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
         origin:
-          NODE_ENV === 'production' ? FRONTEND_ORIGIN : 'http://localhost:3000',
+          NODE_ENV === 'production' ? FRONTEND_ORIGIN : 'http://localhost:5173',
       }),
     );
     app.use(compression() as unknown as express.RequestHandler);

@@ -1,12 +1,12 @@
 # Backend Code Structure
-- The main backend application is in quente-api/src.
+- The main backend application is in quente-api.
 
 
 # Core System Components
 
 
 # Frontend Code Structure
-- The main frontend application is in quente-ui/web.
+- The main frontend application is in quente-web.
 
 
 # Testing & Debugging

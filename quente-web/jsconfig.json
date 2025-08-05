@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+    }
+  },
+  "include": ["src", "../common/components/AppSidebar.js", "../common/components/AppSidebarNav.js"],
+  "exclude": ["node_modules"]
+}

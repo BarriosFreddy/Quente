@@ -1,0 +1,1 @@
+import{a7 as n,a8 as s}from"./index-zLCb2fgV.js";const m=r=>async(e,i,o)=>{e(n(!0));try{const{status:t,data:a}=await o.get(`/inv-enumerations/code/${r}`);t===200&&e(s(a))}catch(t){console.error("Error fetching inventory enumeration by code:",t)}e(n(!1))};export{m as g};
