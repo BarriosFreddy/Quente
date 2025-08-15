@@ -52,6 +52,10 @@ export const createLayawaySchema = Joi.object({
       'object.base': 'La información del creador debe ser un objeto',
       'any.required': 'La información del creador es requerida'
     }),
+  createdAt: Joi.object({
+    date: Joi.number(),
+    offset: Joi.number(),
+  }),
   notes: Joi.string().allow('', null)
 });
 

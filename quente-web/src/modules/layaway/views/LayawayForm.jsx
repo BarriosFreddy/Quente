@@ -25,6 +25,7 @@ import { cilTrash } from '@coreui/icons';
 import ClientSearchComponent from "@/shared/components/client-search-component/ClientSearchComponent";
 import { sendWarningToast } from '@/shared/services/notification.service';
 import ItemSearchComponent from '@/shared/components/item-search-component/ItemSearchComponent';
+import { getDateObject } from '@/utils';
 
 
 const layawayInitialState = {
@@ -194,6 +195,7 @@ function LayawayForm(props) {
         totalAmount: parseFloat(layaway.totalAmount),
         initialPayment: parseFloat(layaway.initialPayment),
         expectedDeliveryDate: new Date(layaway.paymentDueDate),
+        createdAt: getDateObject(),
         client: {
           id: selectedClient._id,
           name: selectedClient.name,
