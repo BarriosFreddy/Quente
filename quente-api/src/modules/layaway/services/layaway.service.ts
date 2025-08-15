@@ -8,11 +8,14 @@ import { LayawayPayment } from '../entities/LayawayPayment';
 import { LayawayPaymentService } from './layaway-payment.service';
 //import { ItemService } from '../../inventory/services/item.service';
 import { Types } from 'mongoose';
+import { Billing } from '../../billing/entities/Billing';
+import { BillingService } from '../../billing/services/billing.service';
+import { BillingStatus } from '../../billing/db/schemas/billing.schema';
 
 dayjs.extend(utc);
 
 const layawayPaymentService = container.resolve(LayawayPaymentService);
-//const itemService = container.resolve(ItemService);
+const billingService = container.resolve(BillingService);
 
 @singleton()
 export class LayawayService extends BaseService<Layaway> {
@@ -184,7 +187,11 @@ export class LayawayService extends BaseService<Layaway> {
       if ((layawayData.initialPayment || 0) > 0) {
         await this.registerInitialPayment(layaway);
       }
-      
+
+      if (layawayData.remainingAmount === 0) {
+        await this.createBilling(layaway);
+      }
+
       return layaway;
     } catch (error) {
       console.error('Error creating layaway plan:', error);
@@ -302,15 +309,62 @@ export class LayawayService extends BaseService<Layaway> {
         layaway.status = LayawayStatus.COMPLETED;
         layaway.completionDate = new Date();
       }
-      
       await layaway.save();
+      if (layaway.remainingAmount <= 0) {
+        await this.createBilling(layaway);
+      }
       return layaway;
     } catch (error) {
       console.error('Error adding payment:', error);
       return Promise.reject(error);
     }
   }
-  
+    
+  /**
+   * Create a billing for a layaway
+   * @param layaway - Layaway document
+   */
+  async createBilling(layaway: Layaway): Promise<void> {
+    try {
+
+      const layawayItems = layaway.items.map((item) => {
+        return {
+          _id: item._id,
+          code: item.code,
+          name: item.name,
+          price: item.price,
+          units: item.units,
+          measurementUnit: "UNIDAD",
+          multiplicity: 1,
+        };
+      });
+
+      const billingData: Billing = {
+        createdAt: {date: new Date().getTime(), offset: -5},
+        receivedAmount: layaway.paidAmount,
+        paymentMethod: 'EFECTIVO',
+        billAmount: layaway.paidAmount,
+        items: layawayItems,
+        creationDate: dayjs().utcOffset(-5).format('YYYY-MM-DD'),
+        client: {
+          id: layaway.client?.id,
+          name: layaway.client?.name,
+        },
+        seller: {
+          id: layaway.createdBy?.id,
+          name: layaway.createdBy?.name,
+        },
+        createdBy: {
+          id: layaway.createdBy?.id,
+          name: layaway.createdBy?.name,
+        },
+        status: BillingStatus.APPROVED,
+      } as Billing;
+      await billingService.save(billingData);
+    } catch (error) {
+      console.error('Error creating billing:', error);
+    }
+  }
   /**
    * Mark a layaway as delivered
    * @param layawayId - ID of the layaway
