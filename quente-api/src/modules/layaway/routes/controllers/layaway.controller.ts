@@ -4,15 +4,19 @@ import { LayawayService } from '../../services/layaway.service';
 import { LayawayPaymentService } from '../../services/layaway-payment.service';
 import { LayawayStatus } from '../../db/schemas/layaway.schema';
 import { setTenantIdToService } from '../../../../helpers/util';
+import { BillingService } from '../../../billing/services/billing.service';
 
 const layawayService = container.resolve(LayawayService);
 const layawayPaymentService = container.resolve(LayawayPaymentService);
+const billingService = container.resolve(BillingService);
 
 
 export const createLayaway = async (req: Request, res: Response) => {
   try {
     const layawayData = req.body;
     await setTenantIdToService(res, layawayPaymentService)
+    await setTenantIdToService(res, billingService)
+
     const layaway = await setTenantIdToService(res, layawayService).create(layawayData);
     
     return res.status(201).json(layaway);
@@ -104,7 +108,7 @@ export const addPayment = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const paymentData = req.body;
-    
+    await setTenantIdToService(res, billingService)
     const updatedLayaway = await setTenantIdToService(res, layawayService).addPayment(id, paymentData);
     
     return res.status(200).json(updatedLayaway);
