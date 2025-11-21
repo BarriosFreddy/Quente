@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { AppError } from '../errors/app-error';
 
 // Log error details
@@ -20,6 +20,7 @@ export const errorHandler = (
   err: Error,
   _req: Request,
   res: Response,
+  next: NextFunction,
 ): void => {
   logError(err);
 
@@ -77,4 +78,5 @@ export const errorHandler = (
     // or restart the process using a process manager like PM2
     console.error('Untrusted error occurred:', err);
   }
+  next();
 };
