@@ -60,12 +60,6 @@ This document outlines the security improvements made to the Quente application 
 - Added better error messages
 - Added loading indicators
 
-### 3.2. Mobile Frontend
-
-- Updated API service to handle token refresh
-- Implemented token refresh interceptors
-- Added proper storage for refresh tokens
-
 ## 4. Configuration Changes
 
 - Added environment variables for token expiration:
